@@ -1,0 +1,19 @@
+services:
+  mysql:
+    image: mysql:8.0.33
+    networks:
+      - hcp_network
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "13306:3306"
+    environment:
+      - TZ=Asia/Seoul
+    env_file:
+      - .env.local
+volumes:
+  mysql_data:
+networks:
+  hcp_network:
+    driver: bridge
+
