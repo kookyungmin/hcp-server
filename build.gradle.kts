@@ -29,11 +29,15 @@ subprojects {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 //        implementation("org.springframework.kafka:spring-kafka")
 
     //Swagger
     implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
+
+    //MySql
+    runtimeOnly("com.mysql:mysql-connector-j")
 
     //Lombok
     compileOnly("org.projectlombok:lombok")

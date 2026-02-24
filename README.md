@@ -17,3 +17,19 @@ Cloud Platform Server
 - [springboot] 3.5.8
 - [mysql] 8.0.33
 
+
+### Use case
+
+- [ ] 인증 / 인가
+- [ ] 회원 관리
+- [ ] 포인트 결제
+- [ ] VM (Linux, Windows) 관리
+- [ ] IAM (서브 계정, 권한) 관리
+- [ ] VPC 관리
+- [ ] DB 관리
+- [ ] AutoScale
+- [ ] Object Storage
+- [ ] Serverless Functions
+- [ ] Observability
+- [ ] 사용량 및 과금 관리
+- [ ] 관리자 사이트 (사용자 통계, 사용량/과금 통계, 시스템 관리)

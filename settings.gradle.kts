@@ -1,3 +1,3 @@
 rootProject.name = "hcp-server"
-include("auth-service")
+include("user-service")
 include("common")
