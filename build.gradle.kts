@@ -44,6 +44,8 @@ subprojects {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
+    implementation("org.apache.commons:commons-lang3:3.20.0")
+
     testRuntimeOnly("com.h2database:h2")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")

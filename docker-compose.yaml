@@ -1,6 +1,7 @@
 services:
   mysql:
     image: mysql:8.0.33
+    container_name: hcp-mysql
     networks:
       - hcp_network
     volumes:
@@ -11,6 +12,14 @@ services:
       - TZ=Asia/Seoul
     env_file:
       - .env.local
+  redis:
+    image: redis:7.2.5
+    container_name: hcp-redis
+    networks:
+      - hcp_network
+    ports:
+      - '16379:6379'
+    restart: always
 volumes:
   mysql_data:
 networks:

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
-public @interface EncryptorAdapter {
+public @interface SecurityOutAdapter {
 
   @AliasFor(annotation = Component.class)
   String value() default "";

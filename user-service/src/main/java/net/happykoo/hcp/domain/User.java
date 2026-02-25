@@ -16,7 +16,7 @@ public class User {
   private boolean isMaster;
   private UserStatus status;
 
-  private User(
+  public User(
       UUID id,
       String displayName,
       UserStatus status,

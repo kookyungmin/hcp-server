@@ -48,6 +48,7 @@ public class SecurityConfig {
         )
         .formLogin(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
+        .httpBasic(AbstractHttpConfigurer::disable)
         .cors(cors ->
             cors.configurationSource(configurationSource(securityProperties.getAllowedOrigins()))
         )

@@ -43,4 +43,8 @@ public class JpaUserAccountEntity extends TimeBaseEntity {
     );
   }
 
+  public UserAccount toDomain() {
+    return new UserAccount(userId, email, password, lastChangedPasswordAt);
+  }
+
 }

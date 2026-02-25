@@ -22,6 +22,10 @@ spring:
         show_sql: true       # 쿼리 로그 출력
         jdbc:
           time_zone: Asia/Seoul
+  data:
+    redis:
+      host: ${SPRING_UR_REDIS_HOST}
+      port: ${SPRING_UR_REDIS_PORT}
 server:
   shutdown: graceful # graceful shutdown
   port: ${SPRING_UR_PORT}
@@ -31,10 +35,14 @@ security:
     - /v1/auth/token/refresh
     - /v1/user-management/register
   jwt:
+    access-token:
+      secret-key: ${JWT_ACCESS_TOKEN_SECRET_KEY}
+      expire-time: 600 #10분
+
     refresh-token:
       secure: false
-      cookie-name: RTK
-      expire-time: 604800 # 일
+      prefix: RTK
+      expire-time: 604800 # 7일
 
 
 

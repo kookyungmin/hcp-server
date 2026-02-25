@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.happykoo.hcp.common.persistence.jpa.entity.TimeBaseEntity;
+import net.happykoo.hcp.domain.PermissionCode;
 import net.happykoo.hcp.domain.User;
 import net.happykoo.hcp.domain.UserStatus;
 
@@ -77,5 +78,22 @@ public class JpaUserEntity extends TimeBaseEntity {
   public void removePermission(JpaUserPermissionEntity permission) {
     permissions.remove(permission);
     permission.setUser(null);
+  }
+
+  public User toDomain() {
+    var user = new User(
+        userId,
+        displayName,
+        status,
+        masterUserId,
+        isMaster
+    );
+
+    user.addPermissions(permissions
+        .stream()
+        .map(p -> new PermissionCode(p.getId().getPermissionCode()))
+        .toList());
+
+    return user;
   }
 }

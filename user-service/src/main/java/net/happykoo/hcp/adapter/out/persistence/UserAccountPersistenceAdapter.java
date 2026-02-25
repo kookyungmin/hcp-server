@@ -17,7 +17,8 @@ public class UserAccountPersistenceAdapter implements GetUserAccountPort, SaveUs
 
   @Override
   public Optional<UserAccount> getUserAccountByEmail(String email) {
-    return Optional.empty();
+    return jpaUserAccountRepository.findByEmail(email)
+        .map(JpaUserAccountEntity::toDomain);
   }
 
   @Override

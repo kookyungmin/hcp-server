@@ -5,8 +5,10 @@ security:
   allowed-origins:
     - http://localhost:3000
   jwt:
+    access-token:
+      expire-time: 60 #1분
     refresh-token:
-      expire-time: 60
+      expire-time: 300 #5분
       secure: false
 
 logging:

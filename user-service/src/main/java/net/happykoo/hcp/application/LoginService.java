@@ -9,6 +9,7 @@ import net.happykoo.hcp.application.port.out.EncryptPasswordPort;
 import net.happykoo.hcp.application.port.out.GeneratorTokenPort;
 import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.GetUserPort;
+import net.happykoo.hcp.application.port.out.SaveTokenPort;
 import net.happykoo.hcp.common.annotation.UseCase;
 
 @UseCase
@@ -19,6 +20,7 @@ public class LoginService implements LoginUseCase {
   private final GetUserPort getUserPort;
   private final EncryptPasswordPort encryptPasswordPort;
   private final GeneratorTokenPort generatorTokenPort;
+  private final SaveTokenPort saveTokenPort;
 
   @Override
   @Transactional
@@ -42,6 +44,7 @@ public class LoginService implements LoginUseCase {
 
     //Refresh Token 생성 및 저장
     var refreshToken = generatorTokenPort.createRefreshToken(user);
+    saveTokenPort.saveRefreshToken(user.getId(), refreshToken);
 
     //Access Token 생성
     var accessToken = generatorTokenPort.createAccessToken(user);

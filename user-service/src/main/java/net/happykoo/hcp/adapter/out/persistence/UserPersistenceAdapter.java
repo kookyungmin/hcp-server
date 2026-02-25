@@ -18,12 +18,13 @@ public class UserPersistenceAdapter implements GetUserPort, SaveUserPort {
 
   @Override
   public Optional<User> getUserById(UUID id) {
-    return Optional.empty();
+    return jpaUserRepository.findByUserId(id)
+        .map(JpaUserEntity::toDomain);
   }
 
   @Override
   public void save(User user) {
-    JpaUserEntity jpaUserEntity = JpaUserEntity.from(user);
+    var jpaUserEntity = JpaUserEntity.from(user);
     jpaUserRepository.save(jpaUserEntity);
   }
 }

@@ -17,10 +17,19 @@ public class UserAccount {
       String email,
       String passwordHash
   ) {
+    this(userId, email, passwordHash, Instant.now());
+  }
+
+  public UserAccount(
+      UUID userId,
+      String email,
+      String passwordHash,
+      Instant passwordChangedAt
+  ) {
     this.userId = userId;
     this.email = new Email(email);
     this.passwordHash = passwordHash;
-    this.passwordChangedAt = Instant.now();
+    this.passwordChangedAt = passwordChangedAt;
   }
 
   public void changePassword(String newPasswordHash) {
