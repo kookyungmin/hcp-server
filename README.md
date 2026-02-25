@@ -10,6 +10,8 @@ Cloud Platform Server
 ![Mysql](https://shields.io/badge/mysql-black?logo=mysql&style=for-the-badge%22)
 ![Redis](https://shields.io/badge/redis-black?logo=redis&style=for-the-badge%22)
 ![k8s](https://shields.io/badge/k8s-black?logo=kubernetes&style=for-the-badge%22)
+![grafana](https://shields.io/badge/grafana-black?logo=grafana&style=for-the-badge%22)
+![prometheus](https://shields.io/badge/prometheus-black?logo=prometheus&style=for-the-badge%22)
 
 ### System Requirements
 
@@ -21,7 +23,7 @@ Cloud Platform Server
 ### Use case
 
 - [ ] 인증 / 인가
-- [ ] 회원 관리
+- [ ] 회원 관리 (회원 정보 관리, 회원가입, 아이디/비밀번호 찾기, 비밀번호 변경)
 - [ ] 포인트 결제
 - [ ] IAM (서브 계정, 권한(RBAC)) 관리
 - [ ] VM (Linux, Windows) 관리
@@ -30,7 +32,7 @@ Cloud Platform Server
 - [ ] DB 관리
 - [ ] AutoScale
 - [ ] Object Storage
-- [ ] Serverless Functions(Runtime, API Generator)
+- [ ] Serverless Functions (Runtime, API Generator)
 - [ ] Observability
 - [ ] 사용량 및 과금 관리
 - [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)

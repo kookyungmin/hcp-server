@@ -1,5 +1,7 @@
 package net.happykoo.hcp.domain;
 
+// [서비스]:[권한(실행, 수정, 권한부여)]
+// (user:read, user:write, user:grant)
 public record PermissionCode(
     String value
 ) {

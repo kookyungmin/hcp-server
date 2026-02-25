@@ -20,13 +20,24 @@ create table hcp_user.h_user_account(
     updated_at timestamp not null default now()
 );
 
-# [서비스]:[행위]:[권한(실행, 수정, 권한부여)]
+# [서비스]:[권한(실행, 수정, 권한부여)]
 create table hcp_user.h_permission(
     permission_code varchar(31) primary key,
     description varchar(31),
     is_active boolean default true,
     is_default boolean default false
 );
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
+values('user:read', '계정 조회 권한', true);
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
+values('user:write', '계정 수정 권한', true);
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
+values('user:grant', 'IAM 관리 권한', false);
+
+select * from hcp_user.h_permission;
 
 # 사용자 permission 테이블
 create table hcp_user.h_user_permission(
@@ -37,3 +48,8 @@ create table hcp_user.h_user_permission(
     primary key (user_id, permission_code)
 );
 
+
+
+select * from hcp_user.h_user;
+select * from hcp_user.h_user_account;
+select * from hcp_user.h_user_permission;

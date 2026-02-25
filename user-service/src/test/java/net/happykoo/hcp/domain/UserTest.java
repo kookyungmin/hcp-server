@@ -15,7 +15,7 @@ class UserTest {
   @BeforeEach
   @DisplayName("User 생성 시 기본적으로 빈 권한과 전달한 상태를 가짐")
   void setUp() {
-    user = new User(UUID.randomUUID(), "happykoo", UserStatus.ACTIVE);
+    user = User.createMasterUser(UUID.randomUUID(), "happykoo", UserStatus.ACTIVE);
 
     assertEquals(0, user.getPermissions().size());
     assertEquals(UserStatus.ACTIVE, user.getStatus());

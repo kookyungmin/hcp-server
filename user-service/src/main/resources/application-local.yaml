@@ -1,13 +1,14 @@
 spring:
   config:
     import: optional:file:.env.local[.properties]
-  datasource:
-    url: jdbc:mysql://localhost:13306/hcp_user?serverTimezone=UTC&characterEncoding=UTF-8
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-server:
-  port: 18080
+security:
+  allowed-origins:
+    - http://localhost:3000
+  jwt:
+    refresh-token:
+      expire-time: 60
+      secure: false
+
 logging:
   level:
     org:
