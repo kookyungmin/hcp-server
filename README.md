@@ -23,13 +23,15 @@ Cloud Platform Server
 - [ ] 인증 / 인가
 - [ ] 회원 관리
 - [ ] 포인트 결제
+- [ ] IAM (서브 계정, 권한(RBAC)) 관리
 - [ ] VM (Linux, Windows) 관리
-- [ ] IAM (서브 계정, 권한) 관리
 - [ ] VPC 관리
+- [ ] Scale Up / Down
 - [ ] DB 관리
 - [ ] AutoScale
 - [ ] Object Storage
-- [ ] Serverless Functions
+- [ ] Serverless Functions(Runtime, API Generator)
 - [ ] Observability
 - [ ] 사용량 및 과금 관리
-- [ ] 관리자 사이트 (사용자 통계, 사용량/과금 통계, 시스템 관리)
+- [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)
+- [ ] OAuth2.0 연동

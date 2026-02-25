@@ -19,5 +19,14 @@ spring:
           time_zone: Asia/Seoul
 server:
   shutdown: graceful # graceful shutdown
+security:
+  allowed-api-paths:
+    - /v1/auth/login
+    - /v1/auth/token/refresh
+  allowed-origins:
+    - http://localhost:3000
+  jwt:
+    refresh-token:
+
 
 

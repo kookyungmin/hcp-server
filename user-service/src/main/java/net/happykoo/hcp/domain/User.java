@@ -1,41 +1,39 @@
 package net.happykoo.hcp.domain;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
 
 @Getter
 public class User {
 
-  private String id;
+  private UUID id;
   private String displayName;
-  private Set<UserRole> roles;
+  private Set<PermissionCode> permissions; //RBAC
   private UserStatus status;
 
   public User(
-      String id,
-      String displayName
+      UUID id,
+      String displayName,
+      UserStatus status
   ) {
     this.id = id;
     this.displayName = displayName;
-    this.roles = new HashSet<>(List.of(UserRole.USER));
-    this.status = UserStatus.ACTIVE;
+    this.permissions = new HashSet<>();
+    this.status = status;
   }
 
-  public void addRole(UserRole role) {
-    roles.add(role);
+  public void addPermission(String permission) {
+    permissions.add(new PermissionCode(permission));
   }
 
-  public void removeRole(UserRole role) {
-    if (!roles.contains(role)) {
-      throw new IllegalStateException("User does not have the role.");
+  public void removePermission(String permission) {
+    var permissionCode = new PermissionCode(permission);
+    if (!permissions.contains(permissionCode)) {
+      throw new IllegalStateException("User does not have the permission.");
     }
 
-    if (roles.size() == 1) {
-      throw new IllegalStateException("User must have at least one role.");
-    }
-
-    roles.remove(role);
+    permissions.remove(permissionCode);
   }
 }

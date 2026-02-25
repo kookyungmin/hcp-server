@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import net.happykoo.hcp.common.web.ErrorResponse;
+import net.happykoo.hcp.common.web.response.CommonResponseEntity;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -26,13 +29,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
   @Bean
+  @ConditionalOnMissingBean(SecurityFilterChain.class)
   public SecurityFilterChain filterChain(
       HttpSecurity http,
       SecurityProperties securityProperties,
       AccessDeniedHandler accessDeniedHandler,
       AuthenticationEntryPoint authenticationEntryPoint
   ) throws Exception {
-    //TODO: JWT 검증 필터
+    //TODO: X-USER-ID, X-ROLES 검증 필터
     http.authorizeHttpRequests(authorizeRequests ->
             authorizeRequests
                 .requestMatchers(Optional.ofNullable(securityProperties.getAllowedApiPaths())
@@ -59,6 +63,7 @@ public class SecurityConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean(AccessDeniedHandler.class)
   AccessDeniedHandler accessDeniedHandler(
       ObjectMapper objectMapper
   ) {
@@ -70,6 +75,7 @@ public class SecurityConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean(AuthenticationEntryPoint.class)
   AuthenticationEntryPoint authenticationEntryPoint(
       ObjectMapper objectMapper
   ) {
@@ -100,11 +106,10 @@ public class SecurityConfig {
       HttpStatus status,
       String message
   ) throws IOException {
-    var res = new ErrorResponse(
-        status.value(),
-        status.getReasonPhrase(),
-        message,
-        request.getRequestURI());
+    var res = CommonResponseEntity.error(message, request.getRequestURI(), status);
+
+    response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setStatus(status.value());
     objectMapper.writeValue(response.getWriter(), res);
   }

@@ -1,23 +1,26 @@
 package net.happykoo.hcp.domain;
 
 import java.time.Instant;
+import java.util.UUID;
 import lombok.Getter;
 
 @Getter
-public class PasswordIdentity extends UserIdentity {
+public class UserAccount {
 
+  private UUID userId;
   private Email email;
   private String passwordHash;
   private Instant passwordChangedAt;
 
-  public PasswordIdentity(
-      String userId,
+  public UserAccount(
+      UUID userId,
       String email,
       String passwordHash
   ) {
-    super(userId, UserIdentityType.PASSWORD, UserIdentityStatus.ACTIVE);
+    this.userId = userId;
     this.email = new Email(email);
     this.passwordHash = passwordHash;
+    this.passwordChangedAt = Instant.now();
   }
 
   public void changePassword(String newPasswordHash) {
