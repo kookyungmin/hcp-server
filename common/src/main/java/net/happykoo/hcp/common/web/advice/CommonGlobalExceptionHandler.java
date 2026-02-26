@@ -5,6 +5,7 @@ import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,6 +41,19 @@ public class CommonGlobalExceptionHandler {
         ex.getBindingResult().getAllErrors().getFirst().getDefaultMessage(),
         getRequestURI(request),
         HttpStatus.BAD_REQUEST
+    );
+  }
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public CommonResponseEntity<String> handleMethodForbidden(
+      AuthorizationDeniedException ex,
+      @NonNull WebRequest request
+  ) {
+    return CommonResponseEntity.error(
+        ex.getMessage(),
+        getRequestURI(request),
+        HttpStatus.FORBIDDEN
     );
   }
 

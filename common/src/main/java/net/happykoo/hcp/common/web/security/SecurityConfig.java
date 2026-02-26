@@ -15,17 +15,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableConfigurationProperties(SecurityProperties.class)
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
   @Bean
@@ -34,9 +37,9 @@ public class SecurityConfig {
       HttpSecurity http,
       SecurityProperties securityProperties,
       AccessDeniedHandler accessDeniedHandler,
-      AuthenticationEntryPoint authenticationEntryPoint
+      AuthenticationEntryPoint authenticationEntryPoint,
+      CommonAuthenticationFilter commonAuthenticationFilter
   ) throws Exception {
-    //TODO: X-USER-ID, X-ROLES 검증 필터
     http.authorizeHttpRequests(authorizeRequests ->
             authorizeRequests
                 .requestMatchers(Optional.ofNullable(securityProperties.getAllowedApiPaths())
@@ -49,6 +52,7 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
+        .addFilterBefore(commonAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .cors(cors ->
             cors.configurationSource(configurationSource(securityProperties.getAllowedOrigins()))
         )
@@ -85,6 +89,11 @@ public class SecurityConfig {
       writeResponse(request, response, objectMapper, HttpStatus.UNAUTHORIZED,
           "Unauthorized.");
     };
+  }
+
+  @Bean
+  CommonAuthenticationFilter commonAuthenticationFilter() {
+    return new CommonAuthenticationFilter();
   }
 
   private CorsConfigurationSource configurationSource(List<String> allowedOrigins) {

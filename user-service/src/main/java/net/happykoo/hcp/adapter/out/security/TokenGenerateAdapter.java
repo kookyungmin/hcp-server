@@ -4,7 +4,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.GeneratorTokenPort;
 import net.happykoo.hcp.common.annotation.SecurityOutAdapter;
-import net.happykoo.hcp.common.web.security.Actor;
+import net.happykoo.hcp.common.web.security.jwt.JwtClaims;
 import net.happykoo.hcp.common.web.security.jwt.JwtProvider;
 import net.happykoo.hcp.domain.PermissionCode;
 import net.happykoo.hcp.domain.User;
@@ -22,7 +22,7 @@ public class TokenGenerateAdapter implements GeneratorTokenPort {
 
   @Override
   public String createAccessToken(User user) {
-    return jwtProvider.createAccessToken(new Actor(
+    return jwtProvider.createAccessToken(new JwtClaims(
         user.getId().toString(),
         user.getPermissions()
             .stream()

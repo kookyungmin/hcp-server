@@ -40,8 +40,8 @@ security:
       expire-time: 600 #10분
 
     refresh-token:
-      secure: false
       prefix: RTK
+      secure: false
       expire-time: 604800 # 7일
 
 

@@ -1,8 +1,8 @@
-package net.happykoo.hcp.common.web.security;
+package net.happykoo.hcp.common.web.security.jwt;
 
 import java.util.List;
 
-public record Actor(
+public record JwtClaims(
     String userId,
     List<String> scopes
 ) {
