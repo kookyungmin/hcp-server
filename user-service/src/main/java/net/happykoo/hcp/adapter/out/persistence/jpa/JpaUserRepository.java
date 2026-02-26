@@ -3,6 +3,7 @@ package net.happykoo.hcp.adapter.out.persistence.jpa;
 import java.util.Optional;
 import java.util.UUID;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaUserEntity;
+import net.happykoo.hcp.adapter.out.persistence.jpa.projection.JpaUserProfileProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,5 +15,7 @@ public interface JpaUserRepository extends JpaRepository<JpaUserEntity, UUID> {
       + "ON u.userId = p.id.userId "
       + "WHERE u.userId = :userId ")
   Optional<JpaUserEntity> findByUserId(UUID userId);
+
+  Optional<JpaUserProfileProjection> findUserProfileByUserId(UUID userId);
 
 }

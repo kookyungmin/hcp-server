@@ -1,10 +1,13 @@
 package net.happykoo.hcp.application;
 
+import static net.happykoo.hcp.adapter.out.persistence.redis.CacheNames.USER_PROFILE;
+
 import jakarta.transaction.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
+import net.happykoo.hcp.application.port.in.result.GetLoginUserInfo;
 import net.happykoo.hcp.application.port.in.result.LoginResult;
 import net.happykoo.hcp.application.port.in.result.RefreshAccessTokenResult;
 import net.happykoo.hcp.application.port.out.EncryptPasswordPort;
@@ -14,6 +17,8 @@ import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.GetUserPort;
 import net.happykoo.hcp.application.port.out.SaveTokenPort;
 import net.happykoo.hcp.common.annotation.UseCase;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 
 @UseCase
 @RequiredArgsConstructor
@@ -25,6 +30,7 @@ public class LoginService implements LoginUseCase {
   private final GeneratorTokenPort generatorTokenPort;
   private final GetTokenPort getTokenPort;
   private final SaveTokenPort saveTokenPort;
+  private final CacheManager cacheManager;
 
   @Override
   @Transactional
@@ -72,5 +78,23 @@ public class LoginService implements LoginUseCase {
 
     var accessToken = generatorTokenPort.createAccessToken(user);
     return new RefreshAccessTokenResult(accessToken);
+  }
+
+  //TODO: CacheEvict 설정
+  @Override
+  @Cacheable(cacheManager = "userProfileCacheManager", cacheNames = USER_PROFILE, key = "#userId")
+  public GetLoginUserInfo getLoginUserInfo(UUID userId) {
+    var userAccountProfile = getUserAccountPort.getUserAccountViewById(userId)
+        .orElseThrow(() -> new IllegalStateException("User Account does not exist."));
+
+    var userProfile = getUserPort.getUserProfileById(userId)
+        .orElseThrow(() -> new IllegalStateException("User does not exist."));
+
+    return new GetLoginUserInfo(
+        userId,
+        userProfile.displayName(),
+        userAccountProfile.email(),
+        userAccountProfile.passwordChangedAt()
+    );
   }
 }

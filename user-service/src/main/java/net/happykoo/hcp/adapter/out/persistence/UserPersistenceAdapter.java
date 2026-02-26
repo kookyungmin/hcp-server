@@ -7,6 +7,7 @@ import net.happykoo.hcp.adapter.out.persistence.jpa.JpaUserRepository;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaUserEntity;
 import net.happykoo.hcp.application.port.out.GetUserPort;
 import net.happykoo.hcp.application.port.out.SaveUserPort;
+import net.happykoo.hcp.application.port.out.data.UserProfile;
 import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.User;
 
@@ -17,9 +18,17 @@ public class UserPersistenceAdapter implements GetUserPort, SaveUserPort {
   private final JpaUserRepository jpaUserRepository;
 
   @Override
-  public Optional<User> getUserById(UUID id) {
-    return jpaUserRepository.findByUserId(id)
+  public Optional<User> getUserById(UUID userId) {
+    return jpaUserRepository.findByUserId(userId)
         .map(JpaUserEntity::toDomain);
+  }
+
+  @Override
+  public Optional<UserProfile> getUserProfileById(UUID userId) {
+    return jpaUserRepository.findUserProfileByUserId(userId)
+        .map(projection -> new UserProfile(
+            projection.getDisplayName()
+        ));
   }
 
   @Override

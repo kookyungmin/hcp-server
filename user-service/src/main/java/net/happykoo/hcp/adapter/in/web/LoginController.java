@@ -3,16 +3,20 @@ package net.happykoo.hcp.adapter.in.web;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.happykoo.hcp.adapter.in.web.auth.UserReadPermission;
 import net.happykoo.hcp.adapter.in.web.cookie.CookieManager;
 import net.happykoo.hcp.adapter.in.web.request.LoginRequest;
+import net.happykoo.hcp.adapter.in.web.response.GetCurrentUserResponse;
 import net.happykoo.hcp.adapter.in.web.response.LoginResponse;
 import net.happykoo.hcp.adapter.in.web.response.RefreshAccessTokenResponse;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
+import net.happykoo.hcp.common.annotation.CurrentActor;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
+import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,9 +32,18 @@ public class LoginController {
   private final CookieManager cookieManager;
 
   @GetMapping("/me")
-  @PreAuthorize("hasAuthority('user:read')")
-  public CommonResponseEntity<Void> getCurrentUser() {
-    return null;
+  @UserReadPermission
+  public CommonResponseEntity<GetCurrentUserResponse> getCurrentUser(
+      @CurrentActor Actor actor
+  ) {
+    var loginUserResult = loginUseCase.getLoginUserInfo(UUID.fromString(actor.userId()));
+    return CommonResponseEntity.ok(new GetCurrentUserResponse(
+        loginUserResult.userId().toString(),
+        loginUserResult.displayName(),
+        loginUserResult.email(),
+        loginUserResult.passwordChangedAt(),
+        actor.scopes()
+    ));
   }
 
   @PostMapping("/login")

@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -24,9 +25,9 @@ public class JwtProvider {
         jwtProperties.getSecretKey().getBytes(StandardCharsets.UTF_8));
   }
 
-  public String createAccessToken(JwtClaims jwtClaims) {
+  public String createAccessToken(Actor actor) {
     Claims claims = Jwts.claims()
-        .add("actor", jwtClaims)
+        .add("actor", actor)
         .build();
 
     Date now = new Date();
@@ -39,12 +40,12 @@ public class JwtProvider {
         .compact();
   }
 
-  public JwtClaims parseAccessToken(String accessToken) {
+  public Actor parseAccessToken(String accessToken) {
     return Jwts.parser()
         .verifyWith(secretKey)
         .build()
         .parseSignedClaims(accessToken)
         .getPayload()
-        .get("actor", JwtClaims.class);
+        .get("actor", Actor.class);
   }
 }

@@ -1,8 +1,8 @@
 package net.happykoo.hcp.adapter.in.web.advice;
 
-import lombok.NonNull;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

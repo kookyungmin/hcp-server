@@ -1,10 +1,10 @@
 package net.happykoo.hcp.common.web.advice;
 
-import lombok.NonNull;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
