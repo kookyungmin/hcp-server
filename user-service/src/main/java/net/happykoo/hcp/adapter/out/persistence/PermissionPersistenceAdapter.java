@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.out.persistence.jpa.JpaPermissionRepository;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaPermissionEntity;
 import net.happykoo.hcp.application.port.out.GetPermissionPort;
-import net.happykoo.hcp.common.annotation.PersistenceAdapter;
+import net.happykoo.hcp.common.web.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.PermissionCode;
 
 @PersistenceAdapter

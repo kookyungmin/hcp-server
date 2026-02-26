@@ -33,7 +33,7 @@ Cloud Platform Server
 - [ ] DB 관리
 - [ ] AutoScale
 - [ ] Object Storage
-- [ ] Serverless Functions (Runtime, API Generator)
+- [ ] Serverless Functions (Runtime Runner, API Generator)
 - [ ] Observability
 - [ ] 회원 관리 (회원 정보 관리, 회원가입, 아이디/비밀번호 찾기, 비밀번호 변경)
 - [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)

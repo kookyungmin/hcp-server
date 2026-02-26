@@ -16,7 +16,7 @@ import net.happykoo.hcp.application.port.out.GetTokenPort;
 import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.GetUserPort;
 import net.happykoo.hcp.application.port.out.SaveTokenPort;
-import net.happykoo.hcp.common.annotation.UseCase;
+import net.happykoo.hcp.common.web.annotation.UseCase;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 

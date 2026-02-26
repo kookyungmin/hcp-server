@@ -13,7 +13,7 @@ import net.happykoo.hcp.adapter.in.web.response.LoginResponse;
 import net.happykoo.hcp.adapter.in.web.response.RefreshAccessTokenResponse;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
-import net.happykoo.hcp.common.annotation.CurrentActor;
+import net.happykoo.hcp.common.web.annotation.CurrentActor;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.http.HttpHeaders;
@@ -36,6 +36,7 @@ public class LoginController {
   public CommonResponseEntity<GetCurrentUserResponse> getCurrentUser(
       @CurrentActor Actor actor
   ) {
+    //TODO: 후에 getUserUseCase 로 옮겨서 구현
     var loginUserResult = loginUseCase.getLoginUserInfo(UUID.fromString(actor.userId()));
     return CommonResponseEntity.ok(new GetCurrentUserResponse(
         loginUserResult.userId().toString(),

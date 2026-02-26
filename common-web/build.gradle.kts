@@ -6,7 +6,7 @@ plugins {
 
 group = "net.happykoo.hcp"
 version = "0.0.1"
-description = "Happy Cloud Platform User Service"
+description = "Happy Cloud Platform Common Web Module"
 
 java {
   toolchain {
@@ -19,23 +19,9 @@ repositories {
 }
 
 dependencies {
-  implementation(project(":common-web"))
-  implementation(project(":common-util"))
-
-  //Spring framework
   implementation("org.springframework.boot:spring-boot-starter-web")
-//    implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-validation")
-  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation("org.springframework.boot:spring-boot-starter-data-redis")
   implementation("org.springframework.boot:spring-boot-starter-security")
-
-  //Swagger
-  implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")
-  implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
-
-  //MySql
-  runtimeOnly("com.mysql:mysql-connector-j")
 
   //Lombok
   compileOnly("org.projectlombok:lombok")
@@ -43,7 +29,6 @@ dependencies {
 
   implementation("org.apache.commons:commons-lang3:3.20.0")
 
-  testRuntimeOnly("com.h2database:h2")
   testCompileOnly("org.projectlombok:lombok")
   testAnnotationProcessor("org.projectlombok:lombok")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -53,3 +38,4 @@ dependencies {
 tasks.getByName<Test>("test") {
   useJUnitPlatform()
 }
+

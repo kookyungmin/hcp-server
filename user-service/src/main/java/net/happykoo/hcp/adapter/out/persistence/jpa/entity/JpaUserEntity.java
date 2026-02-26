@@ -17,7 +17,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.happykoo.hcp.common.persistence.jpa.entity.TimeBaseEntity;
 import net.happykoo.hcp.domain.PermissionCode;
 import net.happykoo.hcp.domain.User;
 import net.happykoo.hcp.domain.UserStatus;
@@ -28,7 +27,7 @@ import net.happykoo.hcp.domain.UserStatus;
 @AllArgsConstructor
 @Getter
 @Setter
-public class JpaUserEntity extends TimeBaseEntity {
+public class JpaUserEntity extends JpaTimeBaseEntity {
 
   @Id
   @Column(name = "user_id")

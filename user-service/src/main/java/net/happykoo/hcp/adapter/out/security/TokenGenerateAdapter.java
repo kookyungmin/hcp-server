@@ -1,19 +1,30 @@
 package net.happykoo.hcp.adapter.out.security;
 
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.GeneratorTokenPort;
-import net.happykoo.hcp.common.annotation.SecurityOutAdapter;
+import net.happykoo.hcp.common.utils.jwt.JwtProperties;
+import net.happykoo.hcp.common.utils.jwt.JwtProvider;
+import net.happykoo.hcp.common.web.annotation.SecurityOutAdapter;
 import net.happykoo.hcp.common.web.security.Actor;
-import net.happykoo.hcp.common.web.security.jwt.JwtProvider;
 import net.happykoo.hcp.domain.PermissionCode;
 import net.happykoo.hcp.domain.User;
+import net.happykoo.hcp.infrastructure.properties.AccessTokenProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SecurityOutAdapter
-@RequiredArgsConstructor
+@EnableConfigurationProperties(AccessTokenProperties.class)
 public class TokenGenerateAdapter implements GeneratorTokenPort {
 
-  private final JwtProvider jwtProvider;
+  private final JwtProvider<Actor> jwtProvider;
+  private final AccessTokenProperties accessTokenProperties;
+
+  public TokenGenerateAdapter(
+      AccessTokenProperties accessTokenProperties
+  ) {
+    this.accessTokenProperties = accessTokenProperties;
+    this.jwtProvider = new JwtProvider<>(
+        new JwtProperties(accessTokenProperties.getSecretKey()));
+  }
 
   @Override
   public String createRefreshToken(User user) {
@@ -22,12 +33,12 @@ public class TokenGenerateAdapter implements GeneratorTokenPort {
 
   @Override
   public String createAccessToken(User user) {
-    return jwtProvider.createAccessToken(new Actor(
+    var actor = new Actor(
         user.getId().toString(),
         user.getPermissions()
             .stream()
             .map(PermissionCode::value)
-            .toList()
-    ));
+            .toList());
+    return jwtProvider.generateToken(actor, accessTokenProperties.getExpireTime());
   }
 }

@@ -38,11 +38,10 @@ security:
     access-token:
       secret-key: ${JWT_ACCESS_TOKEN_SECRET_KEY}
       expire-time: 600 #10분
-
-    refresh-token:
-      prefix: RTK
-      secure: false
-      expire-time: 604800 # 7일
+  refresh-token:
+    prefix: RTK
+    secure: false
+    expire-time: 604800 # 7일
 
 
 

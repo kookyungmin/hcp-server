@@ -1,0 +1,15 @@
+server:
+  port: ${SPRING_API_GATEWAY_PORT}
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: ${SPRING_UR_SERVICE_URL}
+              predicates:
+                - Path=/users/**
+              filters:
+                - StripPrefix=1
+

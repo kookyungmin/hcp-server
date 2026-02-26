@@ -1,7 +1,7 @@
 package net.happykoo.hcp.adapter.out.security;
 
 import net.happykoo.hcp.application.port.out.EncryptPasswordPort;
-import net.happykoo.hcp.common.annotation.SecurityOutAdapter;
+import net.happykoo.hcp.common.web.annotation.SecurityOutAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

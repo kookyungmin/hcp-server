@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.GetTokenPort;
 import net.happykoo.hcp.application.port.out.SaveTokenPort;
 import net.happykoo.hcp.application.port.out.data.RefreshTokenPayload;
-import net.happykoo.hcp.common.annotation.PersistenceAdapter;
+import net.happykoo.hcp.common.web.annotation.PersistenceAdapter;
 import net.happykoo.hcp.infrastructure.properties.RefreshTokenProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;

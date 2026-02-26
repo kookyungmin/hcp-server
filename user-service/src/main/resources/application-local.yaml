@@ -7,9 +7,9 @@ security:
   jwt:
     access-token:
       expire-time: 60 #1분
-    refresh-token:
-      expire-time: 300 #5분
-      secure: false
+  refresh-token:
+    expire-time: 300 #5분
+    secure: false
 
 logging:
   level:

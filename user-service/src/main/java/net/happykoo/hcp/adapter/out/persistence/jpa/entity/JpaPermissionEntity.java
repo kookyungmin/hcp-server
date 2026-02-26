@@ -14,7 +14,7 @@ import net.happykoo.hcp.domain.PermissionCode;
 @Getter
 @Setter
 @NoArgsConstructor
-public class JpaPermissionEntity {
+public class JpaPermissionEntity extends JpaTimeBaseEntity {
 
   @Id
   @Column(name = "permission_code", nullable = false)

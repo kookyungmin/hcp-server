@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.happykoo.hcp.common.persistence.jpa.entity.TimeBaseEntity;
 import net.happykoo.hcp.domain.UserAccount;
 
 @Entity
@@ -19,7 +18,7 @@ import net.happykoo.hcp.domain.UserAccount;
 @AllArgsConstructor
 @Getter
 @Setter
-public class JpaUserAccountEntity extends TimeBaseEntity {
+public class JpaUserAccountEntity extends JpaTimeBaseEntity {
 
   @Id
   @Column(name = "user_id")

@@ -10,7 +10,7 @@ import net.happykoo.hcp.application.port.out.GetPermissionPort;
 import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.SaveUserAccountPort;
 import net.happykoo.hcp.application.port.out.SaveUserPort;
-import net.happykoo.hcp.common.annotation.UseCase;
+import net.happykoo.hcp.common.web.annotation.UseCase;
 import net.happykoo.hcp.domain.User;
 import net.happykoo.hcp.domain.UserAccount;
 import net.happykoo.hcp.domain.UserStatus;

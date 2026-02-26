@@ -11,14 +11,13 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.happykoo.hcp.common.persistence.jpa.entity.TimeBaseEntity;
 
 @Entity
 @Table(name = "h_user_permission")
 @NoArgsConstructor
 @Getter
 @Setter
-public class JpaUserPermissionEntity extends TimeBaseEntity {
+public class JpaUserPermissionEntity extends JpaTimeBaseEntity {
 
   @EmbeddedId
   private JpaUserPermissionId id;
