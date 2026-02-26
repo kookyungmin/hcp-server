@@ -1,11 +1,13 @@
 package net.happykoo.hcp.adapter.in.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.cookie.CookieManager;
 import net.happykoo.hcp.adapter.in.web.request.LoginRequest;
 import net.happykoo.hcp.adapter.in.web.response.LoginResponse;
+import net.happykoo.hcp.adapter.in.web.response.RefreshAccessTokenResponse;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
@@ -43,12 +45,26 @@ public class LoginController {
   }
 
   @PostMapping("/logout")
-  public CommonResponseEntity<Void> logout() {
-    return null;
+  public CommonResponseEntity<Void> logout(
+      HttpServletRequest request,
+      HttpServletResponse response
+  ) {
+    var refreshToken = cookieManager.getRefreshToken(request.getCookies());
+    loginUseCase.logout(refreshToken);
+
+    response.setHeader(HttpHeaders.SET_COOKIE,
+        cookieManager.deleteRefreshToken().toString());
+
+    return CommonResponseEntity.ok();
   }
 
   @PostMapping("/token/refresh")
-  public CommonResponseEntity<Void> refreshAccessToken() {
-    return null;
+  public CommonResponseEntity<RefreshAccessTokenResponse> refreshAccessToken(
+      HttpServletRequest request
+  ) {
+    var refreshToken = cookieManager.getRefreshToken(request.getCookies());
+    var refreshResult = loginUseCase.refreshAccessToken(refreshToken);
+
+    return CommonResponseEntity.ok(new RefreshAccessTokenResponse(refreshResult.accessToken()));
   }
 }

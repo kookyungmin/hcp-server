@@ -5,4 +5,6 @@ import java.util.UUID;
 public interface SaveTokenPort {
 
   void saveRefreshToken(UUID userId, String refreshToken);
+
+  void removeRefreshToken(String refreshToken);
 }
