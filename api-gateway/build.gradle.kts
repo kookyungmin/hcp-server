@@ -21,9 +21,14 @@ repositories {
 dependencies {
   implementation(project(":common-util"))
   implementation(platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.1"))
-
   implementation("org.springframework.cloud:spring-cloud-starter-gateway") // WebFlux Gateway
   implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+  //Lombok
+  compileOnly("org.projectlombok:lombok")
+  annotationProcessor("org.projectlombok:lombok")
+
+  implementation("org.apache.commons:commons-lang3:3.20.0")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 

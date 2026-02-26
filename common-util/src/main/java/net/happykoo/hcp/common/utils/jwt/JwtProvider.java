@@ -1,16 +1,14 @@
 package net.happykoo.hcp.common.utils.jwt;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import javax.crypto.SecretKey;
 
 
-public class JwtProvider<T> {
-
-  private final static String CLAIM_KEY = "claims";
+public class JwtProvider {
 
   private final JwtProperties jwtProperties;
   private final SecretKey secretKey;
@@ -28,27 +26,27 @@ public class JwtProvider<T> {
         jwtProperties.secretKey().getBytes(StandardCharsets.UTF_8));
   }
 
-  public String generateToken(T payload, long expireSeconds) {
-    Claims claims = Jwts.claims()
-        .add(CLAIM_KEY, payload)
-        .build();
+  public String generateToken(List<JwtClaim> claims, long expireSeconds) {
+    var claimsBuilder = Jwts.claims();
 
-    Date now = new Date();
-    Date validateDate = new Date(now.getTime() + (expireSeconds * 1000L));
+    claims.forEach(claim -> claimsBuilder.add(claim.key(), claim.value()));
+
+    var now = new Date();
+    var validateDate = new Date(now.getTime() + (expireSeconds * 1000L));
     return Jwts.builder()
-        .claims(claims)
+        .claims(claimsBuilder.build())
         .expiration(validateDate)
         .issuedAt(now)
         .signWith(secretKey)
         .compact();
   }
 
-  public T parseToken(String accessToken, Class<T> payloadClass) {
+  public String parseToken(String accessToken, String claimKey) {
     return Jwts.parser()
         .verifyWith(secretKey)
         .build()
         .parseSignedClaims(accessToken)
         .getPayload()
-        .get(CLAIM_KEY, payloadClass);
+        .get(claimKey, String.class);
   }
 }
