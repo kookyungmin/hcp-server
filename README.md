@@ -2,6 +2,8 @@
 
 Cloud Platform Server
 
+![img.png](image/img.png)
+
 
 <!-- prettier-ignore-start -->
 ![SpringBoot](https://shields.io/badge/springboot-black?logo=springboot&style=for-the-badge%22)
@@ -17,13 +19,14 @@ Cloud Platform Server
 
 - [java] 21
 - [springboot] 3.5.8
+- [springcloud] 2025.0.1
 - [mysql] 8.0.33
 - [redis] 6.2.10
 
 
 ### Use case
 
-- [ ] 인증 / 인가
+- [x] 인증 / 인가
 - [ ] VM (Linux, Windows) 관리
 - [ ] 사용량(Resource 시간 당 사용량, Traffic 용량) 및 과금 관리
 - [ ] 사용자 요금 정산 / 결제

@@ -54,7 +54,7 @@ public class CookieManager {
         .secure(isSecure)
         .path("/")
         .maxAge(maxAge)
-        .sameSite("Strict")
+        .sameSite("Lax")
         .build();
   }
 }

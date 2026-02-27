@@ -1,3 +1,13 @@
 spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            corsConfigurations:
+              '[/**]':
+                allowedOrigins:
+                  - "http://localhost:3000"
   config:
     import: optional:file:.env.local[.properties]

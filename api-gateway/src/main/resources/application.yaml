@@ -5,6 +5,8 @@ spring:
     gateway:
       server:
         webflux:
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials RETAIN_FIRST
           routes:
             - id: user-service
               uri: ${SPRING_UR_SERVICE_URL}
@@ -12,8 +14,26 @@ spring:
                 - Path=/users/**
               filters:
                 - StripPrefix=1
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            corsConfigurations:
+              '[/**]':
+                allowedOrigins:
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - "*"
+                exposedHeaders:
+                  - "Authorization"
+                  - "Set-Cookie"
+                allowCredentials: true
+                maxAge: 3600
 security:
   jwt:
     access-token:
       secret-key: ${JWT_ACCESS_TOKEN_SECRET_KEY}
-
