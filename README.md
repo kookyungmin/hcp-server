@@ -1,10 +1,5 @@
 # Happy Cloud Platform Server
 
-Cloud Platform Server
-
-![img.png](image/img.png)
-
-
 <!-- prettier-ignore-start -->
 ![SpringBoot](https://shields.io/badge/springboot-black?logo=springboot&style=for-the-badge%22)
 ![Docker](https://shields.io/badge/docker-black?logo=docker&style=for-the-badge%22)
@@ -14,6 +9,10 @@ Cloud Platform Server
 ![k8s](https://shields.io/badge/k8s-black?logo=kubernetes&style=for-the-badge%22)
 ![grafana](https://shields.io/badge/grafana-black?logo=grafana&style=for-the-badge%22)
 ![prometheus](https://shields.io/badge/prometheus-black?logo=prometheus&style=for-the-badge%22)
+
+해피 클라우드 플랫폼 서버
+
+![img.png](image/img.png)
 
 ### System Requirements
 
