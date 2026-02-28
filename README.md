@@ -50,5 +50,5 @@
 - [ ] Serverless Functions (Runtime Runner, API Generator)
 - [ ] Object Storage
 - [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)
-- [ ] DB Cluster / Master, Slaves / Backup
+- [ ] DB,Redis Cluster / Master, Slaves / Backup
 
