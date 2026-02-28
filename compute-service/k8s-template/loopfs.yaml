@@ -1,0 +1,259 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: loopfs-system
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: loopfs
+provisioner: loopfs.provisioner.local
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: loopfs-provisioner
+  namespace: loopfs-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: loopfs-provisioner
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get","list","watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get","list","watch","create","delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create","patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: loopfs-provisioner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: loopfs-provisioner
+subjects:
+  - kind: ServiceAccount
+    name: loopfs-provisioner
+    namespace: loopfs-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loopfs-provisioner-script
+  namespace: loopfs-system
+data:
+  provisioner.py: |
+    import os, time, re
+    from kubernetes import client, config, watch
+
+    PROVISIONER = "loopfs.provisioner.local"
+    SC_NAME = "loopfs"
+    HOST_BASE = "/host/var/lib/loopfs"
+
+    UNITS = {"Ki":1024, "Mi":1024**2, "Gi":1024**3, "Ti":1024**4}
+
+    def parse_quantity(q: str) -> int:
+      q = str(q).strip()
+      for u, m in UNITS.items():
+        if q.endswith(u):
+          return int(float(q[:-len(u)]) * m)
+      # bytes
+      if re.fullmatch(r"\d+", q):
+        return int(q)
+      raise ValueError(f"unsupported quantity: {q}")
+
+    def ensure_meta_dir(pvc_uid: str, size_bytes: int):
+      meta = os.path.join(HOST_BASE, f"pv-{pvc_uid}")
+      os.makedirs(meta, exist_ok=True)
+      os.makedirs(os.path.join(meta, "mount"), exist_ok=True)
+      with open(os.path.join(meta, "size_bytes"), "w") as f:
+        f.write(str(size_bytes))
+      return meta
+
+    def ensure_pv(v1, pvc):
+      scn = pvc.spec.storage_class_name
+      if scn != SC_NAME:
+        return
+
+      # Already bound? nothing to do
+      if pvc.status and pvc.status.phase == "Bound":
+        return
+
+      pvc_uid = pvc.metadata.uid
+      ns = pvc.metadata.namespace
+      name = pvc.metadata.name
+      pv_name = f"loopfs-pv-{pvc_uid}"
+
+      try:
+        v1.read_persistent_volume(pv_name)
+        return
+      except client.exceptions.ApiException as e:
+        if e.status != 404:
+          raise
+
+      req = pvc.spec.resources.requests.get("storage", "1Gi")
+      size_bytes = parse_quantity(req)
+
+      meta = ensure_meta_dir(pvc_uid, size_bytes)
+      host_mount = os.path.join(meta.replace(HOST_BASE, "/var/lib/loopfs"), "mount")
+
+      pv = client.V1PersistentVolume(
+        metadata=client.V1ObjectMeta(
+          name=pv_name,
+          labels={"loopfs": "true", "pvc_uid": pvc_uid},
+        ),
+        spec=client.V1PersistentVolumeSpec(
+          capacity={"storage": req},
+          access_modes=pvc.spec.access_modes,
+          persistent_volume_reclaim_policy="Delete",
+          storage_class_name=SC_NAME,
+          claim_ref=client.V1ObjectReference(
+            api_version="v1",
+            kind="PersistentVolumeClaim",
+            namespace=ns,
+            name=name,
+            uid=pvc_uid,
+          ),
+          host_path=client.V1HostPathVolumeSource(
+            path=host_mount,
+            type="DirectoryOrCreate",
+          ),
+          volume_mode=pvc.spec.volume_mode or "Filesystem",
+        ),
+      )
+      v1.create_persistent_volume(pv)
+      print(f"[loopfs] PV created: {pv_name} size={req} host_mount={host_mount}")
+
+    def main():
+      config.load_incluster_config()
+      v1 = client.CoreV1Api()
+      w = watch.Watch()
+      print("[loopfs] provisioner started")
+      while True:
+        try:
+          for ev in w.stream(v1.list_persistent_volume_claim_for_all_namespaces, timeout_seconds=60):
+            pvc = ev["object"]
+            ensure_pv(v1, pvc)
+        except Exception as e:
+          print("[loopfs] watch error:", e)
+          time.sleep(2)
+
+    if __name__ == "__main__":
+      main()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loopfs-provisioner
+  namespace: loopfs-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loopfs-provisioner
+  template:
+    metadata:
+      labels:
+        app: loopfs-provisioner
+    spec:
+      serviceAccountName: loopfs-provisioner
+      containers:
+        - name: prov
+          image: python:3.11-alpine
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              pip install --no-cache-dir kubernetes==29.0.0 >/dev/null
+              python /app/provisioner.py
+          volumeMounts:
+            - name: script
+              mountPath: /app
+            - name: host-loopfs
+              mountPath: /host/var/lib/loopfs
+      volumes:
+        - name: script
+          configMap:
+            name: loopfs-provisioner-script
+        - name: host-loopfs
+          hostPath:
+            path: /var/lib/loopfs
+            type: DirectoryOrCreate
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: loopfs-mounter
+  namespace: loopfs-system
+spec:
+  selector:
+    matchLabels:
+      app: loopfs-mounter
+  template:
+    metadata:
+      labels:
+        app: loopfs-mounter
+    spec:
+      hostPID: true
+      containers:
+        - name: mounter
+          image: alpine:3.19
+          securityContext:
+            privileged: true
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              apk add --no-cache e2fsprogs util-linux >/dev/null
+              set -euo pipefail
+              echo "[loopfs-mounter] started"
+
+              # loop 모듈 (없어도 계속 진행)
+              nsenter -t 1 -m -- sh -lc 'modprobe loop 2>/dev/null || true' || true
+
+              while true; do
+                for meta in /host/var/lib/loopfs/pv-*; do
+                  [ -d "$meta" ] || continue
+
+                  # 컨테이너(/host/...) -> 호스트(/...) 경로 변환
+                  host_meta="${meta#/host}"
+                  img="$meta/backing.img"
+                  mnt="$meta/mount"
+                  host_img="$host_meta/backing.img"
+                  host_mnt="$host_meta/mount"
+
+                  size_bytes="1073741824"
+                  [ -f "$meta/size_bytes" ] && size_bytes="$(cat "$meta/size_bytes" || echo 1073741824)"
+
+                  mkdir -p "$mnt"
+
+                  # 이미지 생성/사이즈 맞추기 (크기 변경은 단순화를 위해 “없을 때만” 생성)
+                  if [ ! -f "$img" ]; then
+                    echo "[loopfs-mounter] create $img size=$size_bytes"
+                    truncate -s "$size_bytes" "$img"
+                    mkfs.ext4 -F "$img" >/dev/null 2>&1 || { rm -f "$img"; continue; }
+                  fi
+
+                  if ! nsenter -t 1 -m -- mountpoint -q "$host_mnt" 2>/dev/null; then
+                    echo "[loopfs-mounter] mount $host_img -> $host_mnt"
+                    nsenter -t 1 -m -- mount -o loop "$host_img" "$host_mnt" 2>/dev/null || true
+                  fi
+                done
+                sleep 2
+              done
+          volumeMounts:
+            - name: host-root
+              mountPath: /host
+      volumes:
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
