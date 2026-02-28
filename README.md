@@ -10,7 +10,11 @@
 ![grafana](https://shields.io/badge/grafana-black?logo=grafana&style=for-the-badge%22)
 ![prometheus](https://shields.io/badge/prometheus-black?logo=prometheus&style=for-the-badge%22)
 
-해피 클라우드 플랫폼 서버
+## 해피 클라우드 플랫폼 서버
+
+실제로는 Compute Server는 VM 으로 할당하고, Network 는 L2,L3 단에서 처리해야 하지만, 
+
+본 프로젝트에서는 k8s 를 활용하여 최대한 클라우드 서비스를 흉내내는 것을 목표
 
 ![img.png](image/img.png)
 
@@ -26,7 +30,7 @@
 ### Use case
 
 - [x] 인증 / 인가
-- [ ] VM (Linux, Windows) 관리
+- [ ] Compute Server Resource (OS Image) 관리
 - [ ] 사용량(Resource 시간 당 사용량, Traffic 용량) 및 과금 관리
 - [ ] 사용자 요금 정산 / 결제
 - [ ] VPC 관리
