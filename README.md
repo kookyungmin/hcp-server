@@ -25,22 +25,30 @@
 - [springcloud] 2025.0.1
 - [mysql] 8.0.33
 - [redis] 6.2.10
+- [k8s] v1.35.1
 
 
-### Use case
+### Use case (MVP)
 
 - [x] 인증 / 인가
+- [ ] 회원 관리 (회원 정보 관리, 회원가입, 아이디/비밀번호 찾기, 비밀번호 변경)
 - [ ] Compute Server Resource (OS Image) 관리
 - [ ] 사용량(Resource 시간 당 사용량, Traffic 용량) 및 과금 관리
 - [ ] 사용자 요금 정산 / 결제
-- [ ] VPC 관리
+- [ ] 방화벽(보안 그룹) 관리
 - [ ] IAM (서브 계정, 권한(RBAC)) 관리
 - [ ] Scale Up / Down
 - [ ] DB 관리
-- [ ] AutoScale
-- [ ] Object Storage
-- [ ] Serverless Functions (Runtime Runner, API Generator)
 - [ ] Observability
-- [ ] 회원 관리 (회원 정보 관리, 회원가입, 아이디/비밀번호 찾기, 비밀번호 변경)
-- [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)
+- [ ] AutoScale
 - [ ] OAuth2.0 연동
+
+### Use case (Advance)
+- [ ] Region 관리
+- [ ] VPC 관리
+- [ ] VM 할당으로 변경 (Windows Image 등 제공)
+- [ ] Serverless Functions (Runtime Runner, API Generator)
+- [ ] Object Storage
+- [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)
+- [ ] DB Cluster / Master, Slaves / Backup
+
