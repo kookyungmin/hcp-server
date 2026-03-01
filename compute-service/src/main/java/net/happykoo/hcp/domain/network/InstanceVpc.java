@@ -1,6 +1,6 @@
 package net.happykoo.hcp.domain.network;
 
-public class ServerVpc {
+public class InstanceVpc {
 
   private String vpcCode;
   private String vpcName;

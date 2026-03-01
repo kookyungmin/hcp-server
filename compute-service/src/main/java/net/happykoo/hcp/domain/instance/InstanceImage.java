@@ -1,6 +1,6 @@
 package net.happykoo.hcp.domain.instance;
 
-public class ServerImage {
+public class InstanceImage {
 
   private String imageCode;
   private String osName;
