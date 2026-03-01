@@ -21,14 +21,17 @@ create table hcp_compute.h_instance_image(
     image_code varchar(16) primary key,
     image_name varchar(128) not null,
     image_description varchar(256),
-    os_name varchar(10) not null,
-    os_version varchar(10) not null,
+    os_name varchar(16) not null,
+    os_version varchar(16) not null,
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
 
 insert into hcp_compute.h_instance_image(image_code, image_name, os_name, os_version, image_description)
 values ('ubuntu:22.04', 'hcp_ubuntu:v1.0.0', 'Ubuntu', '22.04', 'Ubuntu 22.04 LTS');
+
+insert into hcp_compute.h_instance_image(image_code, image_name, os_name, os_version, image_description)
+values ('rocky:8.10', 'hcp_rocky:v1.0.0', 'Rocky Linux', '8.10', 'Rocky Linux 8.10 LTS');
 
 create table hcp_compute.h_instance_spec(
     spec_code varchar(16) primary key,

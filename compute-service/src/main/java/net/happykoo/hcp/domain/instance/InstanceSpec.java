@@ -1,5 +1,8 @@
 package net.happykoo.hcp.domain.instance;
 
+import lombok.Getter;
+
+@Getter
 public class InstanceSpec {
 
   private String specCode;

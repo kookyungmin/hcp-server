@@ -5,13 +5,13 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.request.UserRegisterRequest;
 import net.happykoo.hcp.application.port.in.RegisterUserUseCase;
 import net.happykoo.hcp.application.port.in.command.UserRegisterCommand;
+import net.happykoo.hcp.common.web.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@WebAdapter
 @RequestMapping("/v1/user-management")
 @RequiredArgsConstructor
 public class UserManagementController {

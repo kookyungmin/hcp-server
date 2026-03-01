@@ -1,4 +1,4 @@
-package net.happykoo.hcp.domain;
+package net.happykoo.hcp.domain.outbox;
 
 import java.util.UUID;
 

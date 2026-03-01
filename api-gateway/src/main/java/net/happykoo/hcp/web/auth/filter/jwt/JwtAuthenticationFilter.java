@@ -20,8 +20,8 @@ import reactor.core.publisher.Mono;
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
   private static final String BEARER = "Bearer ";
-  private static final String X_USER_ID = "X-USER-ID";
-  private static final String X_ROLES = "X-ROLES";
+  private static final String X_USER_ID = "X-User-Id";
+  private static final String X_ROLES = "X-Roles";
   private final JwtProvider jwtProvider;
 
 

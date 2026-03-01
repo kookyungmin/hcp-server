@@ -39,6 +39,9 @@ insert into hcp_user.h_permission(permission_code, description, is_default)
 values('user:grant', 'IAM 관리 권한', false);
 
 insert into hcp_user.h_permission(permission_code, description, is_default)
+values('compute:instance:read', '인스턴스 조회 권한', false);
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
 values('compute:instance:execute', '인스턴스 실행 권한', false);
 
 insert into hcp_user.h_permission(permission_code, description, is_default)

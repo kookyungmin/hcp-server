@@ -1,4 +1,4 @@
-package net.happykoo.hcp.domain;
+package net.happykoo.hcp.domain.outbox;
 
 public enum OutboxStatus {
   PENDING,

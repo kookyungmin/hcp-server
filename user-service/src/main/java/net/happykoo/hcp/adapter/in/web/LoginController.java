@@ -14,6 +14,7 @@ import net.happykoo.hcp.adapter.in.web.response.RefreshAccessTokenResponse;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
 import net.happykoo.hcp.common.web.annotation.CurrentActor;
+import net.happykoo.hcp.common.web.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.http.HttpHeaders;
@@ -21,9 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@WebAdapter
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
 public class LoginController {

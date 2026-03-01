@@ -6,9 +6,9 @@ security:
     - http://localhost:3000
   jwt:
     access-token:
-      expire-time: 60 #1분
+      expire-time: 300 #5분
   refresh-token:
-    expire-time: 300 #5분
+    expire-time: 3600 #1시간
     secure: false
 
 logging:
