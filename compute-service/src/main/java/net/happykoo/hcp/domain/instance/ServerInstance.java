@@ -2,7 +2,7 @@ package net.happykoo.hcp.domain.instance;
 
 import java.util.Set;
 import java.util.UUID;
-import net.happykoo.hcp.domain.network.InstanceVpc;
+import net.happykoo.hcp.domain.network.NetworkVpc;
 
 public class ServerInstance {
 
@@ -11,9 +11,11 @@ public class ServerInstance {
   private String name;
   private Set<String> tags;
   private InstanceImage image;
-  private InstanceVpc vpc;
-  private InstanceStatus stratus;
+  private NetworkVpc vpc;
+  private InstanceStatus status;
   private InstanceSpec spec;
   private InstanceStorage storage;
   private String failureReason;
+  private String publicIp;
+  private String privateIp;
 }
