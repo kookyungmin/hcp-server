@@ -1,3 +1,4 @@
+create database hcp_user;
 # 사용자 마스터 테이블
 create table hcp_user.h_user(
     user_id binary(16) primary key,
@@ -36,6 +37,13 @@ values('user:write', '계정 수정 권한', true);
 
 insert into hcp_user.h_permission(permission_code, description, is_default)
 values('user:grant', 'IAM 관리 권한', false);
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
+values('compute:instance:execute', '인스턴스 실행 권한', false);
+
+insert into hcp_user.h_permission(permission_code, description, is_default)
+values('compute:instance:write', '인스턴스 생성/수정 권한', false);
+
 
 select * from hcp_user.h_permission;
 

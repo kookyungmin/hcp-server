@@ -4,6 +4,7 @@ import net.happykoo.hcp.common.web.annotation.CurrentActor;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,9 +33,14 @@ public class CurrentActorArgumentResolver implements HandlerMethodArgumentResolv
       @NonNull NativeWebRequest webRequest,
       @Nullable WebDataBinderFactory binderFactory
   ) {
-    var authenticationToken = (UsernamePasswordAuthenticationToken) (SecurityContextHolder
+    var authentication = SecurityContextHolder
         .getContext()
-        .getAuthentication());
+        .getAuthentication();
+
+    if (!(authentication instanceof UsernamePasswordAuthenticationToken authenticationToken)
+        || !authenticationToken.isAuthenticated()) {
+      throw new AuthenticationCredentialsNotFoundException("Unauthorized.");
+    }
 
     var userId = (String) authenticationToken.getPrincipal();
     var scopes = authenticationToken.getAuthorities()

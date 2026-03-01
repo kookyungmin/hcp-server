@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+security:
+  allowed-origins:
+    - http://localhost:3000
+logging:
+  level:
+    org:
+      hibernate:
+        orm:
+          jdbc:
+            bind: TRACE

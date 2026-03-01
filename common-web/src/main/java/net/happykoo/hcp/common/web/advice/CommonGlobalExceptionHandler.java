@@ -6,6 +6,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -54,6 +55,19 @@ public class CommonGlobalExceptionHandler {
         ex.getMessage(),
         getRequestURI(request),
         HttpStatus.FORBIDDEN
+    );
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public CommonResponseEntity<String> handleAuthenticationException(
+      AuthenticationException ex,
+      @NonNull WebRequest request
+  ) {
+    return CommonResponseEntity.error(
+        ex.getMessage(),
+        getRequestURI(request),
+        HttpStatus.UNAUTHORIZED
     );
   }
 
