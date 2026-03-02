@@ -1,6 +1,7 @@
 package net.happykoo.hcp.adapter.in.web.advice;
 
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
+import net.happykoo.hcp.exception.IdempotencyConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,19 @@ public class GlobalExceptionHandler {
         ex.getMessage(),
         getRequestURI(request),
         HttpStatus.BAD_REQUEST
+    );
+  }
+
+  @ExceptionHandler(IdempotencyConflictException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public CommonResponseEntity<String> handleIdempotencyConflictException(
+      IllegalArgumentException ex,
+      @NonNull WebRequest request
+  ) {
+    return CommonResponseEntity.error(
+        ex.getMessage(),
+        getRequestURI(request),
+        HttpStatus.CONFLICT
     );
   }
 

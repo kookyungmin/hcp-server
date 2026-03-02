@@ -4,6 +4,6 @@ public final class PermissionCode {
 
   public static final String INSTANCE_READ = "server:instance:read";
   public static final String INSTANCE_EXECUTE = "server:instance:execute";
-  public static final String INSTANCE_WRITE = "server:instance:";
+  public static final String INSTANCE_WRITE = "server:instance:write";
 
 }

@@ -12,4 +12,26 @@ public class NetworkVpc {
   private DefaultNetworkPolicy defaultEgressPolicy;
   private DefaultNetworkPolicy defaultIngressPolicy;
   private String cidrBlock;
+
+  public NetworkVpc(
+      String vpcCode,
+      String name,
+      String description,
+      DefaultNetworkPolicy defaultEgressPolicy,
+      DefaultNetworkPolicy defaultIngressPolicy,
+      String cidrBlock
+  ) {
+    this.vpcCode = vpcCode;
+    this.name = name;
+    this.description = description;
+    this.defaultEgressPolicy = defaultEgressPolicy;
+    this.defaultIngressPolicy = defaultIngressPolicy;
+    this.cidrBlock = cidrBlock;
+  }
+
+  public NetworkVpc(
+      String vpcCode
+  ) {
+    this(vpcCode, null, null, null, null, null);
+  }
 }

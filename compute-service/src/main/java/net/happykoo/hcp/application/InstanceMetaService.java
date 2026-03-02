@@ -1,4 +1,4 @@
-package net.happykoo.hcp.application.port;
+package net.happykoo.hcp.application;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

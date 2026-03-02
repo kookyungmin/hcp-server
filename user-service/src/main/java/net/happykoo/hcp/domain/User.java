@@ -50,7 +50,7 @@ public class User {
   public void removePermission(String permission) {
     var permissionCode = new PermissionCode(permission);
     if (!permissions.contains(permissionCode)) {
-      throw new IllegalStateException("User does not have the permission.");
+      throw new IllegalStateException("사용자에게 해당 권한이 없습니다.");
     }
 
     permissions.remove(permissionCode);

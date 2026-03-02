@@ -34,7 +34,7 @@ public class IdempotencyKeyArgumentResolver implements HandlerMethodArgumentReso
     String idempotencyKey = webRequest.getHeader(HEADER_NAME);
 
     if (StringUtils.isBlank(idempotencyKey)) {
-      throw new IllegalArgumentException("Idempotency key is required. in header");
+      throw new IllegalArgumentException("Idempotency-Key 헤더는 필수입니다.");
     }
 
     return idempotencyKey;

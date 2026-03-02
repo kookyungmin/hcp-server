@@ -33,7 +33,7 @@ public class UserManagementService implements RegisterUserUseCase {
     //이메일 중복 체크
     var existsEmail = getUserAccountPort.existsByEmail(command.email());
     if (existsEmail) {
-      throw new IllegalStateException("Email already exists.");
+      throw new IllegalStateException("이미 존재하는 이메일입니다.");
     }
 
     //Default Permission 조회

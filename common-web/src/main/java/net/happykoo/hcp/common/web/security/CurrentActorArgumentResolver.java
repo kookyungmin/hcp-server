@@ -39,7 +39,7 @@ public class CurrentActorArgumentResolver implements HandlerMethodArgumentResolv
 
     if (!(authentication instanceof UsernamePasswordAuthenticationToken authenticationToken)
         || !authenticationToken.isAuthenticated()) {
-      throw new AuthenticationCredentialsNotFoundException("Unauthorized.");
+      throw new AuthenticationCredentialsNotFoundException("인증 정보가 없습니다.");
     }
 
     var userId = (String) authenticationToken.getPrincipal();

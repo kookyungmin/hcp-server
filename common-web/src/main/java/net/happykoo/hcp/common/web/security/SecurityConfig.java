@@ -75,7 +75,7 @@ public class SecurityConfig {
     //인증 O 인가 X (403 FOR_BIDDEN)
     return (request, response, accessDeniedException) -> {
       writeResponse(request, response, objectMapper, HttpStatus.FORBIDDEN,
-          "Access Denied.");
+          "접근 권한이 없습니다.");
     };
   }
 
@@ -87,7 +87,7 @@ public class SecurityConfig {
     //인증 X API 접근 (401 UnAuthorized)
     return (request, response, authException) -> {
       writeResponse(request, response, objectMapper, HttpStatus.UNAUTHORIZED,
-          "Unauthorized.");
+          "인증이 필요합니다.");
     };
   }
 

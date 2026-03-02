@@ -10,4 +10,24 @@ public class InstanceSpec {
   private String specDescription;
   private String cpu;
   private String memory;
+
+  public InstanceSpec(
+      String specCode,
+      String specName,
+      String specDescription,
+      String cpu,
+      String memory
+  ) {
+    this.specCode = specCode;
+    this.specName = specName;
+    this.specDescription = specDescription;
+    this.cpu = cpu;
+    this.memory = memory;
+  }
+
+  public InstanceSpec(
+      String specCode
+  ) {
+    this(specCode, null, null, null, null);
+  }
 }

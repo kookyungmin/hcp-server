@@ -65,7 +65,9 @@ create table hcp_compute.h_network_vpc(
 );
 
 insert into hcp_compute.h_network_vpc(vpc_code, vpc_name, vpc_description, cidr_block, default_egress_policy, default_ingress_policy)
-values('vpc-default', 'Default VPC', 'Default VPC (No Edit)', '10.244.0.0/16', 'ALLOW_ALL', 'DENY_ALL');
+values('vpc-default', 'default VPC', '개발용 디폴트 VPC', '10.244.0.0/16', 'ALLOW_ALL', 'DENY_ALL');
+
+select * from hcp_compute.h_network_vpc;
 
 
 

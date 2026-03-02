@@ -22,16 +22,16 @@ public class JpaInstanceImageEntity extends JpaTimeBaseEntity {
   @Column(name = "image_code")
   private String imageCode;
 
-  @Column(name = "image_name")
+  @Column(name = "image_name", nullable = false)
   private String imageName;
 
   @Column(name = "image_description")
   private String imageDescription;
 
-  @Column(name = "os_name")
+  @Column(name = "os_name", nullable = false)
   private String osName;
 
-  @Column(name = "os_version")
+  @Column(name = "os_version", nullable = false)
   private String osVersion;
 
   public InstanceImage toDomain() {

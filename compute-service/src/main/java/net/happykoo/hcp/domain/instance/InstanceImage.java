@@ -24,4 +24,10 @@ public class InstanceImage {
     this.osName = osName;
     this.osVersion = osVersion;
   }
+
+  public InstanceImage(
+      String imageCode
+  ) {
+    this(imageCode, null, null, null, null);
+  }
 }

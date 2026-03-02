@@ -8,7 +8,7 @@ public record PermissionCode(
 
   public PermissionCode {
     if (value == null || value.isBlank()) {
-      throw new IllegalArgumentException("permission code is required");
+      throw new IllegalArgumentException("권한 코드는 필수입니다.");
     }
   }
 }

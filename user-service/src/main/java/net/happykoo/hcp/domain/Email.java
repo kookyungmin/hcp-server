@@ -13,7 +13,7 @@ public class Email {
 
   public Email(String value) {
     if (!EMAIL_PATTERN.matcher(value).matches()) {
-      throw new IllegalArgumentException("Invalid email address.");
+      throw new IllegalArgumentException("유효하지 않은 이메일 주소입니다.");
     }
     this.value = value;
   }

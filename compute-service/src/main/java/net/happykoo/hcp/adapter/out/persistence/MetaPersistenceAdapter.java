@@ -3,7 +3,11 @@ package net.happykoo.hcp.adapter.out.persistence;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.out.persistence.jpa.JpaInstanceImageRepository;
+import net.happykoo.hcp.adapter.out.persistence.jpa.JpaInstanceSpecRepository;
+import net.happykoo.hcp.adapter.out.persistence.jpa.JpaNetworkVpcRepository;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceImageEntity;
+import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceSpecEntity;
+import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaNetworkVpcEntity;
 import net.happykoo.hcp.application.port.out.GetInstanceImagePort;
 import net.happykoo.hcp.application.port.out.GetInstanceSpecPort;
 import net.happykoo.hcp.application.port.out.GetNetworkVpcPort;
@@ -18,6 +22,8 @@ public class MetaPersistenceAdapter implements GetInstanceImagePort,
     GetInstanceSpecPort, GetNetworkVpcPort {
 
   private final JpaInstanceImageRepository jpaInstanceImageRepository;
+  private final JpaInstanceSpecRepository jpaInstanceSpecRepository;
+  private final JpaNetworkVpcRepository jpaNetworkVpcRepository;
 
   @Override
   public List<InstanceImage> findAllInstanceImage() {
@@ -29,11 +35,17 @@ public class MetaPersistenceAdapter implements GetInstanceImagePort,
 
   @Override
   public List<InstanceSpec> findAllInstanceSpec() {
-    return List.of();
+    return jpaInstanceSpecRepository.findAll()
+        .stream()
+        .map(JpaInstanceSpecEntity::toDomain)
+        .toList();
   }
 
   @Override
   public List<NetworkVpc> findAllNetworkVpc() {
-    return List.of();
+    return jpaNetworkVpcRepository.findAll()
+        .stream()
+        .map(JpaNetworkVpcEntity::toDomain)
+        .toList();
   }
 }

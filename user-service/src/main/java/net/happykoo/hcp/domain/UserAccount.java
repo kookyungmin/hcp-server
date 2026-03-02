@@ -34,7 +34,7 @@ public class UserAccount {
 
   public void changePassword(String newPasswordHash) {
     if (passwordHash.equals(newPasswordHash)) {
-      throw new IllegalArgumentException("The Password is same as the old one.");
+      throw new IllegalArgumentException("새 비밀번호가 기존 비밀번호와 같습니다.");
     }
     this.passwordHash = newPasswordHash;
     this.passwordChangedAt = Instant.now();
