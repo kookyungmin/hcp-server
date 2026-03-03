@@ -26,6 +26,7 @@
 - [mysql] 8.0.33
 - [redis] 6.2.10
 - [k8s] v1.35.1
+- [kafka] 4.1.1
 
 
 ### Use case (MVP)
