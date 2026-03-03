@@ -6,7 +6,7 @@ create table hcp_compute.h_instance(
     name varchar(32) not null,
     image varchar(16) not null,
     vpc varchar(16) not null,
-    status varchar(10) not null,
+    status varchar(16) not null,
     spec varchar(16) not null,
     storage_type varchar(5) not null,
     storage_size integer not null,
@@ -16,6 +16,13 @@ create table hcp_compute.h_instance(
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
+
+create table hcp_compute.h_instance_tag(
+    instance_id binary(16) not null,
+    tag varchar(256),
+    primary key(instance_id, tag)
+);
+
 
 create table hcp_compute.h_instance_image(
     image_code varchar(16) primary key,
@@ -69,6 +76,26 @@ values('vpc-default', 'default VPC', '개발용 디폴트 VPC', '10.244.0.0/16',
 
 select * from hcp_compute.h_network_vpc;
 
+create table hcp_compute.h_idempotency_request(
+    owner_id binary(16) not null,
+    idempotency_key varchar(128) not null,
+    command_type varchar(32) not null,
+    request_hash varchar(512) not null,
+    response varchar(1024),
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now(),
+    primary key(owner_id, idempotency_key)
+);
+
+create table hcp_compute.h_outbox_event(
+    event_id binary(16) not null,
+    event_type varchar(32) not null,
+    payload varchar(1024) not null,
+    status varchar(16) not null,
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now(),
+    primary key(event_id)
+);
 
 
 

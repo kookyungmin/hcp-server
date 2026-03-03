@@ -34,6 +34,16 @@ public class JpaInstanceImageEntity extends JpaTimeBaseEntity {
   @Column(name = "os_version", nullable = false)
   private String osVersion;
 
+  public static JpaInstanceImageEntity from(InstanceImage image) {
+    return new JpaInstanceImageEntity(
+        image.getImageCode(),
+        image.getImageName(),
+        image.getImageDescription(),
+        image.getOsName(),
+        image.getOsVersion()
+    );
+  }
+
   public InstanceImage toDomain() {
     return new InstanceImage(
         imageCode,

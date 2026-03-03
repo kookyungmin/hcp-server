@@ -4,5 +4,5 @@ import net.happykoo.hcp.domain.instance.ServerInstance;
 
 public interface SaveInstanceInfoPort {
 
-  void saveInstanceInfo(ServerInstance instanceInfo);
+  ServerInstance saveInstanceInfo(ServerInstance instanceInfo);
 }

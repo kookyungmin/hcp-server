@@ -8,7 +8,7 @@ import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaUserAccountEntity;
 import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.SaveUserAccountPort;
 import net.happykoo.hcp.application.port.out.data.UserAccountView;
-import net.happykoo.hcp.common.web.annotation.PersistenceAdapter;
+import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.UserAccount;
 
 @PersistenceAdapter

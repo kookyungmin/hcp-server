@@ -1,11 +1,14 @@
 package net.happykoo.hcp.domain.instance;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import net.happykoo.hcp.domain.network.NetworkVpc;
 
 @AllArgsConstructor
+@Getter
 public class ServerInstance {
 
   private UUID instanceId;
@@ -46,5 +49,55 @@ public class ServerInstance {
         null,
         null
     );
+  }
+
+  public String getImageName() {
+    return Optional.ofNullable(image)
+        .map(InstanceImage::getImageName)
+        .orElse(null);
+  }
+
+  public String getDefaultEgressPolicy() {
+    return Optional.ofNullable(vpc)
+        .map(NetworkVpc::getDefaultEgressPolicy)
+        .map(Enum::name)
+        .orElse(null);
+  }
+
+  public String getDefaultIngressPolicy() {
+    return Optional.ofNullable(vpc)
+        .map(NetworkVpc::getDefaultIngressPolicy)
+        .map(Enum::name)
+        .orElse(null);
+  }
+
+  public String getCidrBlock() {
+    return Optional.ofNullable(vpc)
+        .map(NetworkVpc::getCidrBlock)
+        .orElse(null);
+  }
+
+  public String getCpu() {
+    return Optional.ofNullable(spec)
+        .map(InstanceSpec::getCpu)
+        .orElse(null);
+  }
+
+  public String getMemory() {
+    return Optional.ofNullable(spec)
+        .map(InstanceSpec::getMemory)
+        .orElse(null);
+  }
+
+  public String getStorageType() {
+    return Optional.ofNullable(storage)
+        .map(InstanceStorage::getStorageType)
+        .orElse(null);
+  }
+
+  public int getStorageSize() {
+    return Optional.ofNullable(storage)
+        .map(InstanceStorage::getStorageSize)
+        .orElse(0);
   }
 }

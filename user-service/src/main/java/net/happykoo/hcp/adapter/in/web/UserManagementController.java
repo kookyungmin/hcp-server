@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.request.UserRegisterRequest;
 import net.happykoo.hcp.application.port.in.RegisterUserUseCase;
 import net.happykoo.hcp.application.port.in.command.UserRegisterCommand;
-import net.happykoo.hcp.common.web.annotation.WebAdapter;
+import net.happykoo.hcp.common.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

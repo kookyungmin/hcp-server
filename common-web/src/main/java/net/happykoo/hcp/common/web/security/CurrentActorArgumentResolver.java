@@ -1,6 +1,6 @@
 package net.happykoo.hcp.common.web.security;
 
-import net.happykoo.hcp.common.web.annotation.CurrentActor;
+import net.happykoo.hcp.common.annotation.CurrentActor;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;

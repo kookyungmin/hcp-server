@@ -9,7 +9,7 @@ import net.happykoo.hcp.application.port.in.result.NetworkVpcResult;
 import net.happykoo.hcp.application.port.out.GetInstanceImagePort;
 import net.happykoo.hcp.application.port.out.GetInstanceSpecPort;
 import net.happykoo.hcp.application.port.out.GetNetworkVpcPort;
-import net.happykoo.hcp.common.web.annotation.UseCase;
+import net.happykoo.hcp.common.annotation.UseCase;
 
 @UseCase
 @RequiredArgsConstructor

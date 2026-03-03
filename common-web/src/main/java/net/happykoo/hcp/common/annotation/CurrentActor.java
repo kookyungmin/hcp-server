@@ -1,4 +1,4 @@
-package net.happykoo.hcp.common.web.annotation;
+package net.happykoo.hcp.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -34,6 +34,16 @@ public class JpaInstanceSpecEntity extends JpaTimeBaseEntity {
   @Column(name = "memory", nullable = false)
   private String memory;
 
+  public static JpaInstanceSpecEntity from(InstanceSpec spec) {
+    return new JpaInstanceSpecEntity(
+        spec.getSpecCode(),
+        spec.getSpecName(),
+        spec.getSpecDescription(),
+        spec.getCpu(),
+        spec.getMemory()
+    );
+  }
+
   public InstanceSpec toDomain() {
     return new InstanceSpec(
         specCode,

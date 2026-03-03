@@ -43,6 +43,8 @@ dependencies {
 
   implementation("org.apache.commons:commons-lang3:3.20.0")
 
+  implementation("com.google.code.gson:gson:2.13.2")
+
   testRuntimeOnly("com.h2database:h2")
   testCompileOnly("org.projectlombok:lombok")
   testAnnotationProcessor("org.projectlombok:lombok")

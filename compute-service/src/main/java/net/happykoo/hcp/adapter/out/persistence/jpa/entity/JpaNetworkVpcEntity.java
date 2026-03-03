@@ -38,6 +38,17 @@ public class JpaNetworkVpcEntity extends JpaTimeBaseEntity {
   @Column(name = "default_ingress_policy")
   private String defaultIngressPolicy;
 
+  public static JpaNetworkVpcEntity from(NetworkVpc vpc) {
+    return new JpaNetworkVpcEntity(
+        vpc.getVpcCode(),
+        vpc.getName(),
+        vpc.getDescription(),
+        vpc.getCidrBlock(),
+        vpc.getDefaultEgressPolicy() == null ? null : vpc.getDefaultEgressPolicy().name(),
+        vpc.getDefaultIngressPolicy() == null ? null : vpc.getDefaultIngressPolicy().name()
+    );
+  }
+
   public NetworkVpc toDomain() {
     return new NetworkVpc(
         vpcCode,

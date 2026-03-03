@@ -11,7 +11,7 @@ import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaNetworkVpcEntity;
 import net.happykoo.hcp.application.port.out.GetInstanceImagePort;
 import net.happykoo.hcp.application.port.out.GetInstanceSpecPort;
 import net.happykoo.hcp.application.port.out.GetNetworkVpcPort;
-import net.happykoo.hcp.common.web.annotation.PersistenceAdapter;
+import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.instance.InstanceImage;
 import net.happykoo.hcp.domain.instance.InstanceSpec;
 import net.happykoo.hcp.domain.network.NetworkVpc;
