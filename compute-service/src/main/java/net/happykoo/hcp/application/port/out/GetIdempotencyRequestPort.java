@@ -6,6 +6,6 @@ import net.happykoo.hcp.domain.idempotency.IdempotencyRequest;
 
 public interface GetIdempotencyRequestPort {
 
-  Optional<IdempotencyRequest> getRequestByKey(UUID ownerId, String idempotencyKey);
+  Optional<IdempotencyRequest> findRequestByKey(UUID ownerId, String idempotencyKey);
 
 }

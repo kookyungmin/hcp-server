@@ -14,4 +14,12 @@ public class OutboxEvent {
   private OutboxStatus status;
   private int retryCount;
 
+  public void success() {
+    this.status = OutboxStatus.SUCCESS;
+  }
+
+  public void failed() {
+    this.status = OutboxStatus.FAILED;
+    this.retryCount++;
+  }
 }

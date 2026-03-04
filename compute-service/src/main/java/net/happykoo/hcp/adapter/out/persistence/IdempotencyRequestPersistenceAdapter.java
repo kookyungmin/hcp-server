@@ -19,7 +19,7 @@ public class IdempotencyRequestPersistenceAdapter implements GetIdempotencyReque
   private final JpaIdempotencyRequestRepository jpaIdempotencyRequestRepository;
 
   @Override
-  public Optional<IdempotencyRequest> getRequestByKey(UUID ownerId, String idempotencyKey) {
+  public Optional<IdempotencyRequest> findRequestByKey(UUID ownerId, String idempotencyKey) {
     return jpaIdempotencyRequestRepository.findById(
             new JpaIdempotencyRequestId(ownerId, idempotencyKey))
         .map(JpaIdempotencyRequestEntity::toDomain);

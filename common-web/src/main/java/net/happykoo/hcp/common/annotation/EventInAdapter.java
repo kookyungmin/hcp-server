@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
-public @interface EventAdapter {
+public @interface EventInAdapter {
 
   @AliasFor(annotation = Component.class)
   String value() default "";

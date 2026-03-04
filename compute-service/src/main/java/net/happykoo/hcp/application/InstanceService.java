@@ -38,7 +38,7 @@ public class InstanceService implements ProvisionInstanceUseCase {
   @Transactional
   public void provisionInstance(ProvisionInstanceCommand command) {
     //Idempotency (멱등성 체크)
-    Optional<IdempotencyRequest> oldIdempotencyRequestOpt = getIdempotencyRequestPort.getRequestByKey(
+    Optional<IdempotencyRequest> oldIdempotencyRequestOpt = getIdempotencyRequestPort.findRequestByKey(
         command.ownerId(),
         command.idempotencyKey());
     var requestHash = generatePayloadHashPort.generateSha256Hash(command.payload());

@@ -26,11 +26,29 @@ spring:
     redis:
       host: ${SPRING_CP_REDIS_HOST}
       port: ${SPRING_CP_REDIS_PORT}
+  kafka:
+    bootstrap-servers: ${SPRING_CP_KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+      linger-ms: 5
+      batch-size: 32768
+      compression-type: lz4
+      delivery-timeout-ms: 120000
+      request-timeout-ms: 30000
 server:
   shutdown: graceful # graceful shutdown
   port: ${SPRING_CP_PORT}
 security:
   allowed-api-paths:
+outbox:
+  poll-interval-ms: 2000
+  batch-size: 200
+  kafka-ack-timeout-ms: 5000
+
 
 
 

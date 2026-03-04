@@ -9,7 +9,7 @@ import net.happykoo.hcp.domain.outbox.OutboxEvent;
 
 @PersistenceAdapter
 @RequiredArgsConstructor
-public class OutboxEventPortPersistenceAdapter implements SaveOutboxEventPort {
+public class OutboxEventPersistenceAdapter implements SaveOutboxEventPort {
 
   private final JpaOutboxEventRepository jpaOutboxEventRepository;
 
