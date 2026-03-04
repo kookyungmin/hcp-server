@@ -5,6 +5,6 @@ import net.happykoo.hcp.domain.outbox.OutboxEvent;
 
 public interface GetOutboxEventPort {
 
-  List<OutboxEvent> findAllPendingOutboxEvent();
+  List<OutboxEvent> claimPendingOutboxEvent();
 
 }

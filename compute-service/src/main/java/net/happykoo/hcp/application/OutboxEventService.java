@@ -20,7 +20,7 @@ public class OutboxEventService implements PublishOutboxEventUseCase {
   @Override
   public void runOnce() {
     //Pending event 조회 (분산 락 보장 되어야 함)
-    List<OutboxEvent> events = getOutboxEventPort.findAllPendingOutboxEvent();
+    List<OutboxEvent> events = getOutboxEventPort.claimPendingOutboxEvent();
 
     for (OutboxEvent event : events) {
       try {

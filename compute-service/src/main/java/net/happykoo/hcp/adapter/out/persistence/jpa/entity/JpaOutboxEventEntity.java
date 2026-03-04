@@ -38,12 +38,30 @@ public class JpaOutboxEventEntity extends JpaTimeBaseEntity {
   @Column(name = "payload")
   private String payload;
 
+  @Column(name = "retry_count")
+  private int retryCount;
+
+  @Column(name = "claim_token")
+  private UUID claimToken;
+
   public static JpaOutboxEventEntity from(OutboxEvent outboxEvent) {
     return new JpaOutboxEventEntity(
         outboxEvent.getEventId(),
         outboxEvent.getEventType(),
         outboxEvent.getStatus(),
-        outboxEvent.getPayload()
+        outboxEvent.getPayload(),
+        outboxEvent.getRetryCount(),
+        null
+    );
+  }
+
+  public OutboxEvent toDomain() {
+    return new OutboxEvent(
+        eventId,
+        eventType,
+        payload,
+        status,
+        retryCount
     );
   }
 }

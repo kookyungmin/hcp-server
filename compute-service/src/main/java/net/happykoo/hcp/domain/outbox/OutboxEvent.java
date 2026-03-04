@@ -20,6 +20,5 @@ public class OutboxEvent {
 
   public void failed() {
     this.status = OutboxStatus.FAILED;
-    this.retryCount++;
   }
 }

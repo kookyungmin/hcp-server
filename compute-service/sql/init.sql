@@ -92,10 +92,13 @@ create table hcp_compute.h_outbox_event(
     event_type varchar(32) not null,
     payload varchar(1024) not null,
     status varchar(16) not null,
+    retry_count smallint not null default 0,
+    claim_token binary(16),
     created_at timestamp not null default now(),
     updated_at timestamp not null default now(),
     primary key(event_id)
 );
+
 
 
 
