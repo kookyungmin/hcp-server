@@ -8,6 +8,7 @@ import net.happykoo.hcp.application.port.out.PublishOutboxEventPort;
 import net.happykoo.hcp.common.annotation.EventOutAdapter;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.infrastructure.properties.OutboxProperties;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -23,7 +24,11 @@ public class OutboxEventAdapter implements PublishOutboxEventPort {
   public void publishOutboxEvent(OutboxEvent outboxEvent)
       throws ExecutionException, InterruptedException, TimeoutException {
     String topic = outboxEvent.getEventType().getTopic();
-    kafkaTemplate.send(topic, outboxEvent.getPayload())
+    ProducerRecord<String, String> record = new ProducerRecord<>(
+        topic,
+        outboxEvent.getEventId().toString(),
+        outboxEvent.getPayload());
+    kafkaTemplate.send(record)
         .get(outboxProperties.kafkaAckTimeoutMs(), TimeUnit.MILLISECONDS);
   }
 }
