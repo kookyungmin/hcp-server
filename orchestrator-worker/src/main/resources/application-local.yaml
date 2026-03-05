@@ -1,0 +1,18 @@
+spring:
+  config:
+    import: optional:file:.env.local[.properties]
+security:
+  allowed-origins:
+    - http://localhost:3000
+logging:
+  level:
+    org:
+      hibernate:
+        orm:
+          jdbc:
+            bind: TRACE
+    org.springframework.kafka: DEBUG
+#    org.apache.kafka: INFO
+#    org.apache.kafka.clients.consumer.internals.ConsumerCoordinator: DEBUG
+#    org.apache.kafka.clients.consumer.internals.AbstractCoordinator: DEBUG
+#    org.springframework.kafka.listener.KafkaMessageListenerContainer: DEBUG

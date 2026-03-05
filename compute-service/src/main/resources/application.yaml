@@ -22,10 +22,6 @@ spring:
         show_sql: true       # 쿼리 로그 출력
         jdbc:
           time_zone: Asia/Seoul
-  data:
-    redis:
-      host: ${SPRING_CP_REDIS_HOST}
-      port: ${SPRING_CP_REDIS_PORT}
   kafka:
     bootstrap-servers: ${SPRING_CP_KAFKA_BOOTSTRAP_SERVERS}
     producer:
