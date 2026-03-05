@@ -1,18 +1,19 @@
 package net.happykoo.hcp.domain.instance;
 
 import java.util.UUID;
+import lombok.AllArgsConstructor;
 
-public record Instance(
-    UUID instanceId,
-    UUID ownerId,
-    String imageName,
-    DefaultNetworkPolicy defaultEgressPolicy,
-    DefaultNetworkPolicy defaultIngressPolicy,
-    String cidrBlock,
-    String cpu,
-    String memory,
-    String storageType,
-    int storageSize
-) {
+@AllArgsConstructor
+public class Instance {
 
+  private UUID instanceId;
+  private UUID ownerId;
+  private String imageName;
+  private DefaultNetworkPolicy defaultEgressPolicy;
+  private DefaultNetworkPolicy defaultIngressPolicy;
+  private String cidrBlock;
+  private String cpu;
+  private String memory;
+  private String storageType;
+  private int storageSize;
 }

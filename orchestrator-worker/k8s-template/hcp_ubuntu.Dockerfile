@@ -2,7 +2,14 @@ FROM ubuntu:22.04
 
 ENV PATH="/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 SHELL ["/bin/bash", "-lc"]
+ENV DEBIAN_FRONTEND=noninteractive
 
+ARG USERNAME=hcp_dev
+
+# 배너(escape 지옥 피해서 COPY 유지)
+COPY banner.txt /etc/issue.net
+
+# 1) df wrapper (원본 그대로)
 RUN set -euo pipefail; \
   mkdir -p /usr/local/bin; \
   printf '%s\n' \
@@ -61,4 +68,63 @@ RUN set -euo pipefail; \
 > /usr/local/bin/df; \
   chmod +x /usr/local/bin/df
 
-CMD ["bash","-lc","sleep infinity"]
+# 2) SSH + sudo (키로그인 only) + banner 설정 파일
+RUN set -euo pipefail; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends openssh-server sudo ca-certificates; \
+  rm -rf /var/lib/apt/lists/*; \
+  \
+  # sshd 런타임 디렉토리 (Ubuntu는 /run/sshd를 요구하는 경우가 많음)
+  mkdir -p /run/sshd /var/run/sshd; \
+  \
+  # 유저 + sudo
+  useradd -m -s /bin/bash "${USERNAME}"; \
+  usermod -aG sudo "${USERNAME}"; \
+  echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${USERNAME}"; \
+  chmod 440 "/etc/sudoers.d/${USERNAME}"; \
+  \
+  mkdir -p "/home/${USERNAME}/.ssh"; \
+  chmod 700 "/home/${USERNAME}/.ssh"; \
+  chown -R "${USERNAME}:${USERNAME}" "/home/${USERNAME}/.ssh"; \
+  \
+  # SSH 설정: root 로그인 금지 + 비번 로그인 금지(키만)
+  sed -i 's/^[#[:space:]]*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config; \
+  sed -i 's/^[#[:space:]]*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config; \
+  (grep -q '^[#[:space:]]*KbdInteractiveAuthentication' /etc/ssh/sshd_config && \
+    sed -i 's/^[#[:space:]]*KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config) || true; \
+  (grep -q '^[#[:space:]]*ChallengeResponseAuthentication' /etc/ssh/sshd_config && \
+    sed -i 's/^[#[:space:]]*ChallengeResponseAuthentication.*/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config) || true; \
+  \
+  # Ubuntu 22.04에서는 sshd_config.d 로 넣는 게 제일 확실
+  mkdir -p /etc/ssh/sshd_config.d; \
+  printf 'Banner /etc/issue.net\n' > /etc/ssh/sshd_config.d/99-banner.conf; \
+  printf 'AllowUsers %s\n' "${USERNAME}" > /etc/ssh/sshd_config.d/99-allowusers.conf
+
+# entrypoint (런타임 host key 생성 + authorized_keys 권한 정리 + sshd 실행)
+RUN cat > /usr/local/bin/entrypoint <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+USERNAME="${USERNAME:-hcp_dev}"
+HOME_DIR="/home/${USERNAME}"
+AK="${HOME_DIR}/.ssh/authorized_keys"
+
+mkdir -p /run/sshd /var/run/sshd
+
+# 컨테이너마다 host key 다르게 (없으면 생성)
+if ! ls /etc/ssh/ssh_host_*_key >/dev/null 2>&1; then
+  ssh-keygen -A
+fi
+
+# authorized_keys 권한 정리 (마운트한 경우)
+if [[ -f "$AK" ]]; then
+  chown -R "${USERNAME}:${USERNAME}" "${HOME_DIR}/.ssh" || true
+  chmod 700 "${HOME_DIR}/.ssh" || true
+  chmod 600 "$AK" || true
+fi
+
+exec /usr/sbin/sshd -D -e
+EOF
+RUN chmod +x /usr/local/bin/entrypoint
+
+CMD ["/usr/local/bin/entrypoint"]

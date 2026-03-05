@@ -6,11 +6,14 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
 import net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult;
 import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.idempotency.Idempotency;
 import net.happykoo.hcp.domain.idempotency.IdempotencyStatus;
+import net.happykoo.hcp.domain.instance.DefaultNetworkPolicy;
+import net.happykoo.hcp.domain.instance.Instance;
 import net.happykoo.hcp.exception.RetryableException;
 import net.happykoo.hcp.infrastructure.properties.IdempotencyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,6 +23,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties(IdempotencyProperties.class)
 public class InstanceService implements ProvisionInstanceUseCase {
 
+  private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
   private final IdempotencyProperties idempotencyProperties;
 
@@ -45,6 +49,18 @@ public class InstanceService implements ProvisionInstanceUseCase {
 
     try {
       //orchestrator(k8s) 명령 실행
+      executeOrchestratorCommandPort.executeProvisionInstanceCommand(new Instance(
+          command.instanceId(),
+          command.ownerId(),
+          command.imageName(),
+          DefaultNetworkPolicy.fromString(command.defaultEgressPolicy()),
+          DefaultNetworkPolicy.fromString(command.defaultIngressPolicy()),
+          command.cidrBlock(),
+          command.cpu(),
+          command.memory(),
+          command.storageType(),
+          command.storageSize()
+      ));
       idempotency.success();
     } catch (Exception e) {
       idempotency.failed();
