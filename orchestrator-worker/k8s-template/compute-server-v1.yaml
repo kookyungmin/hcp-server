@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hcp-7b920f10
+  labels:
+    hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
+    hcp.ownerId: "4bb2fc11-e584-40c1-88ba-87af6ae9699d"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hcp-pvc
+  namespace: hcp-7b920f10
+  labels:
+    app: hcp-app
+    hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: loopfs
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hcp-app
+  namespace: hcp-7b920f10
+  labels:
+    app: hcp-app
+    hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcp-app
+  template:
+    metadata:
+      labels:
+        app: hcp-app
+        hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
+    spec:
+      runtimeClassName: gvisor
+      containers:
+        - name: app
+          image: hcp_ubuntu:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: ssh
+              containerPort: 22
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "4"
+              memory: "256Mi"
+            limits:
+              cpu: "4"
+              memory: "256Mi"
+          env:
+            # df wrapper 표시용 (PVC=50Gi와 동일)
+            - name: TOTAL_DISK_BYTES
+              value: "107374182400"
+            # 필요하면 /run 같은 tmpfs를 디스크에서 뺀 것처럼 보이게(지금은 0 권장)
+            - name: RESERVED_BYTES
+              value: "0"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hcp-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hcp-svc
+  namespace: hcp-7b920f10
+  labels:
+    app:  hcp-app
+    hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
+spec:
+  type: NodePort
+  selector:
+    app: hcp-app
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: hcp-7b920f10
+spec:
+  podSelector:
+    matchLabels:
+      app: hcp-app
+  policyTypes:
+    - Ingress
+  ingress: []

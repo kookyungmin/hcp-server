@@ -51,13 +51,13 @@ create table hcp_compute.h_instance_spec(
 );
 
 insert into hcp_compute.h_instance_spec(spec_code, spec_name, spec_description, cpu, memory)
-values ('h1.micro', 'h1.micro', 'CPU: 1cores, Memory: 256MB', '1', '256Mi');
+values ('h1.micro', 'h1.micro', 'CPU: 2cores, Memory: 256MB', '2', '256Mi');
 
 insert into hcp_compute.h_instance_spec(spec_code, spec_name, spec_description, cpu, memory)
 values ('h1.small', 'h1.small', 'CPU: 2cores, Memory: 512MB', '2', '512Mi');
 
 insert into hcp_compute.h_instance_spec(spec_code, spec_name, spec_description, cpu, memory)
-values ('h1.large', 'h1.large', 'CPU: 4cores, Memory: 2GB', '4', '2Gi');
+values ('h1.large', 'h1.large', 'CPU: 8cores, Memory: 2GB', '4', '2Gi');
 
 
 create table hcp_compute.h_network_vpc(

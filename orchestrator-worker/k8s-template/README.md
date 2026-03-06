@@ -30,6 +30,6 @@ StorageClass
 
 ```
 kubectl apply -f loopfs.yaml
-kubectl apply -f test-compute-server.yaml
+kubectl apply -f compute-server-v1.yaml
 ```
 

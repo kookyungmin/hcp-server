@@ -2,8 +2,10 @@ package net.happykoo.hcp.domain.instance;
 
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public class Instance {
 
   private UUID instanceId;

@@ -40,6 +40,19 @@ security:
   allowed-api-paths:
 idempotency:
   processing-ttl-seconds: 120
+k8s:
+  prefix: hcp
+  app-key: app
+  pvc-key: pvc
+  pvc-access-mode: ReadWriteOnce
+  pvc-storage-unit: Gi
+  service-key: svc
+  service-type: NodePort
+  container-image-pull-policy: IfNotPresent
+  instance-label: hcp.instanceId
+  owner-label: hcp.owner
+  storage-class-name: loopfs
+  pod-runtime-class-name: gvisor
 
 
 
