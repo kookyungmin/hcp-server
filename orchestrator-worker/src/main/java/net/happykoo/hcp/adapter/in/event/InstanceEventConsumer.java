@@ -42,6 +42,6 @@ public class InstanceEventConsumer {
         event.storageType(),
         event.storageSize()
     ));
-//    ack.acknowledge();
+    ack.acknowledge();
   }
 }
