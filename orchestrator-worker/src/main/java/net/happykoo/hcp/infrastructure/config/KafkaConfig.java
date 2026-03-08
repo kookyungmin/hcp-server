@@ -31,7 +31,7 @@ public class KafkaConfig {
     return factory;
   }
 
-  //DLQ 설정 (Dead Letter Queue) -> 60초 간격 5번 retry 해서 실패시 (원래 topic).DLT 로 메시지 produce
+  //DLQ 설정 (Dead Letter Queue) -> 5초 간격 3번 retry 해서 실패시 (원래 topic).DLT 로 메시지 produce
   @Bean
   public DefaultErrorHandler errorHandler(
       KafkaTemplate<String, String> template
@@ -40,7 +40,7 @@ public class KafkaConfig {
         template,
         (record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition())
     );
-    var backoff = new FixedBackOff(60000L, 5L);
+    var backoff = new FixedBackOff(5000L, 3L);
 
     return new DefaultErrorHandler(recoverer, backoff);
   }
