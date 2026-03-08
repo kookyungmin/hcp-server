@@ -1,5 +1,6 @@
 package net.happykoo.hcp.infrastructure.config;
 
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -35,8 +36,11 @@ public class KafkaConfig {
   public DefaultErrorHandler errorHandler(
       KafkaTemplate<String, String> template
   ) {
-    DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(template);
-    var backoff = new FixedBackOff(6000L, 5L);
+    DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+        template,
+        (record, ex) -> new TopicPartition(record.topic() + ".DLT", record.partition())
+    );
+    var backoff = new FixedBackOff(60000L, 5L);
 
     return new DefaultErrorHandler(recoverer, backoff);
   }

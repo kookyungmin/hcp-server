@@ -40,7 +40,8 @@ public class InstanceService implements ProvisionInstanceUseCase {
     IdempotencyAcquireResult acquireResult = saveIdempotencyPort.tryAcquireIdempotency(idempotency);
     if (acquireResult == ALREADY_DONE) {
       //이미 완료된 작업이므로 return 해서 ack commit
-      return;
+//      return;
+      throw new RetryableException("이미 진행 중인 작업입니다.");
     }
     if (acquireResult == IdempotencyAcquireResult.BUSY) {
       //다른 consumer 가 처리하고 있으므로 throw 해서 retry 유도
