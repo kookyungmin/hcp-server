@@ -2,22 +2,26 @@ package net.happykoo.hcp.adapter.out.persistence;
 
 import static net.happykoo.hcp.domain.idempotency.IdempotencyStatus.SUCCESS;
 
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.out.persistence.jpa.JpaIdempotencyRepository;
+import net.happykoo.hcp.adapter.out.persistence.jpa.JpaInsertRepository;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaIdempotencyEntity;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
 import net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult;
 import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.idempotency.Idempotency;
 import net.happykoo.hcp.domain.idempotency.IdempotencyStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 @RequiredArgsConstructor
 public class IdempotencyPersistenceAdapter implements SaveIdempotencyPort {
 
   private final JpaIdempotencyRepository jpaIdempotencyRepository;
+  private final JpaInsertRepository jpaInsertRepository;
+  private final EntityManager entityManager;
 
   @Override
   @Transactional
@@ -35,9 +39,7 @@ public class IdempotencyPersistenceAdapter implements SaveIdempotencyPort {
 
     try {
       //지난 요청이 없어서 Idempotency insert 성공 (작업 선점)
-      jpaIdempotencyRepository.save(JpaIdempotencyEntity.from(idempotency));
-      jpaIdempotencyRepository.flush();
-
+      jpaInsertRepository.tryInsert(JpaIdempotencyEntity.from(idempotency));
       return IdempotencyAcquireResult.ACQUIRED;
     } catch (Exception e) {
       var status = jpaIdempotencyRepository.findById(idempotency.getIdempotencyKey())

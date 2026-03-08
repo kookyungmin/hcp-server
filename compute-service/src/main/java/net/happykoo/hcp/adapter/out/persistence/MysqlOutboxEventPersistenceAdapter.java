@@ -3,7 +3,6 @@ package net.happykoo.hcp.adapter.out.persistence;
 import static net.happykoo.hcp.domain.outbox.OutboxStatus.PENDING;
 import static net.happykoo.hcp.domain.outbox.OutboxStatus.PROCESSING;
 
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.infrastructure.properties.OutboxProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 @RequiredArgsConstructor

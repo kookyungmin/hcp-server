@@ -1,6 +1,5 @@
 package net.happykoo.hcp.application;
 
-import jakarta.transaction.Transactional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.in.RegisterUserUseCase;
@@ -14,6 +13,7 @@ import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.User;
 import net.happykoo.hcp.domain.UserAccount;
 import net.happykoo.hcp.domain.UserStatus;
+import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 @RequiredArgsConstructor

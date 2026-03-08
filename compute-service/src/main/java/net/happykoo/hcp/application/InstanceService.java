@@ -5,7 +5,6 @@ import static net.happykoo.hcp.domain.outbox.OutboxEventType.INSTANCE_PROVISIONI
 import static net.happykoo.hcp.domain.outbox.OutboxStatus.PENDING;
 
 import com.google.gson.Gson;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import net.happykoo.hcp.domain.instance.ServerInstance;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.domain.outbox.payload.InstanceProvisioningEventPayload;
 import net.happykoo.hcp.exception.IdempotencyConflictException;
+import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 @RequiredArgsConstructor
