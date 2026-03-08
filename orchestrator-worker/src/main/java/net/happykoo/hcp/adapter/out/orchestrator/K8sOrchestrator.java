@@ -4,21 +4,30 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import io.fabric8.kubernetes.api.model.Node;
+import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
+import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
 import net.happykoo.hcp.common.annotation.OrchestratorAdapter;
 import net.happykoo.hcp.domain.instance.Instance;
 import net.happykoo.hcp.infrastructure.properties.K8sProperties;
@@ -55,6 +64,162 @@ public class K8sOrchestrator implements ExecuteOrchestratorCommandPort {
     k8sClient.resource(networkPolicy)
         .inNamespace(namespace.getMetadata().getName())
         .serverSideApply();
+  }
+
+  @Override
+  public InstanceStatusData executeGetInstanceStatusCommand(UUID instanceId) {
+    String instanceIdString = instanceId.toString();
+    Map<String, String> labels = Map.of(k8sProperties.getInstanceLabel(), instanceIdString);
+    String namespace = generateNamespaceName(instanceIdString);
+
+    Deployment deployment = findDeployment(namespace, labels);
+    Pod pod = findPodByLabels(namespace, labels);
+    PersistentVolumeClaim pvc = findPvcByLabels(namespace, labels);
+    Service service = findServiceByLabels(namespace, labels);
+
+    return resolveInstanceStatus(
+        instanceIdString,
+        deployment,
+        pod,
+        pvc,
+        service
+    );
+  }
+
+  private Deployment findDeployment(String namespace, Map<String, String> labels) {
+    return k8sClient.apps().deployments()
+        .inNamespace(namespace)
+        .withLabels(labels)
+        .list()
+        .getItems()
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
+  private Pod findPodByLabels(String namespace, Map<String, String> labels) {
+    return k8sClient.pods()
+        .inNamespace(namespace)
+        .withLabels(labels)
+        .list()
+        .getItems()
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
+  private PersistentVolumeClaim findPvcByLabels(String namespace, Map<String, String> labels) {
+    return k8sClient.persistentVolumeClaims()
+        .inNamespace(namespace)
+        .withLabels(labels)
+        .list()
+        .getItems()
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
+  private Service findServiceByLabels(String namespace, Map<String, String> labels) {
+    return k8sClient.services()
+        .inNamespace(namespace)
+        .withLabels(labels)
+        .list()
+        .getItems()
+        .stream()
+        .findFirst()
+        .orElse(null);
+  }
+
+  private InstanceStatusData resolveInstanceStatus(
+      String instanceId,
+      Deployment deployment,
+      Pod pod,
+      PersistentVolumeClaim pvc,
+      Service service
+  ) {
+    if (deployment == null &&
+        pod == null &&
+        pvc == null &&
+        service == null) {
+      return InstanceStatusData.deleted(instanceId);
+    }
+
+    //Pod 로 실패 여부 판단
+    if (pod != null &&
+        pod.getStatus() != null &&
+        pod.getStatus().getContainerStatuses() != null) {
+      for (var cs : pod.getStatus().getContainerStatuses()) {
+        if (cs.getState() != null && cs.getState().getWaiting() != null) {
+          String reason = cs.getState().getWaiting().getReason();
+          String message = cs.getState().getWaiting().getMessage();
+
+          if ("ImagePullBackOff".equals(reason)
+              || "ErrImagePull".equals(reason)
+              || "CrashLoopBackOff".equals(reason)
+              || "CreateContainerConfigError".equals(reason)) {
+            return InstanceStatusData.failed(
+                instanceId,
+                message
+            );
+          }
+        }
+      }
+    }
+
+    boolean pvcBound = Optional.ofNullable(pvc)
+        .map(PersistentVolumeClaim::getStatus)
+        .map(s -> "Bound".equalsIgnoreCase(s.getPhase()))
+        .orElse(false);
+
+    boolean podReady = Optional.ofNullable(pod)
+        .map(Pod::getStatus)
+        .map(PodStatus::getContainerStatuses)
+        .map(s -> s.stream()
+            .allMatch(c -> Boolean.TRUE.equals(c.getReady())))
+        .orElse(false) && pod.getStatus().getPhase().equals("Running");
+
+    boolean deploymentReady = Optional.ofNullable(deployment)
+        .map(Deployment::getStatus)
+        .map(DeploymentStatus::getAvailableReplicas)
+        .map(r -> r > 0)
+        .orElse(false);
+
+    boolean serviceReady = service != null;
+
+    if (podReady && pvcBound && deploymentReady && serviceReady) {
+      return InstanceStatusData.success(
+          instanceId,
+          getPublicIp(pod, service),
+          getPrivateIp(service)
+      );
+    }
+
+    return InstanceStatusData.processing(instanceId);
+  }
+
+  private String getPublicIp(Pod pod, Service service) {
+    String nodeIp = Optional.ofNullable(pod.getSpec().getNodeName())
+        .map(nodeName -> k8sClient.nodes().withName(nodeName).get())
+        .map(Node::getStatus)
+        .flatMap(status -> status.getAddresses()
+            .stream()
+            .filter(a -> "InternalIP".equals(a.getType()))
+            .map(NodeAddress::getAddress)
+            .findFirst())
+        .orElse(null);
+
+    Integer nodePort = service.getSpec()
+        .getPorts()
+        .getFirst()
+        .getNodePort();
+
+    return nodeIp + ":" + nodePort;
+  }
+
+  private String getPrivateIp(Service service) {
+    return Optional.ofNullable(service.getSpec())
+        .map(ServiceSpec::getClusterIP)
+        .orElse(null);
   }
 
   private Namespace buildNamespace(Instance instance) {

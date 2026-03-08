@@ -3,12 +3,16 @@ package net.happykoo.hcp.application;
 import static net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult.ALREADY_DONE;
 
 import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.WatchInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
 import net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult;
+import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
 import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.idempotency.Idempotency;
 import net.happykoo.hcp.domain.idempotency.IdempotencyStatus;
@@ -18,10 +22,11 @@ import net.happykoo.hcp.exception.RetryableException;
 import net.happykoo.hcp.infrastructure.properties.IdempotencyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+@Slf4j
 @UseCase
 @RequiredArgsConstructor
 @EnableConfigurationProperties(IdempotencyProperties.class)
-public class InstanceService implements ProvisionInstanceUseCase {
+public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceStatusUseCase {
 
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
@@ -69,5 +74,14 @@ public class InstanceService implements ProvisionInstanceUseCase {
       //멱등성 상태 (update)
       saveIdempotencyPort.saveIdempotency(idempotency);
     }
+  }
+
+  @Override
+  public void watchStatusAndSendEvent(UUID instanceId) {
+    InstanceStatusData status = executeOrchestratorCommandPort.executeGetInstanceStatusCommand(
+        instanceId
+    );
+
+    log.info("Instance Status : {}", status);
   }
 }
