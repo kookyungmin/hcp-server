@@ -14,6 +14,12 @@ spring:
                 - Path=/users/**
               filters:
                 - StripPrefix=1
+            - id: compute-service
+              uri: ${SPRING_CP_SERVICE_URL}
+              predicates:
+                - Path=/computes/**
+              filters:
+                - StripPrefix=1
           globalcors:
             add-to-simple-url-handler-mapping: true
             corsConfigurations:

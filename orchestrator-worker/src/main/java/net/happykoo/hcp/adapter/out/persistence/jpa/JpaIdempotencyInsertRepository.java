@@ -2,13 +2,13 @@ package net.happykoo.hcp.adapter.out.persistence.jpa;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
-public class JpaInsertRepository {
+public class JpaIdempotencyInsertRepository {
 
   private final EntityManager entityManager;
 
