@@ -10,6 +10,7 @@ import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.WatchInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
+import net.happykoo.hcp.application.port.out.PublishInstanceStatusEventPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
 import net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
@@ -31,6 +32,7 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
   private final IdempotencyProperties idempotencyProperties;
+  private final PublishInstanceStatusEventPort publishInstanceStatusEventPort;
 
   @Override
   public void provisionInstance(
@@ -82,6 +84,6 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
         instanceId
     );
 
-    log.info("Instance Status : {}", status);
+    publishInstanceStatusEventPort.publishInstanceStatusEvent(status);
   }
 }

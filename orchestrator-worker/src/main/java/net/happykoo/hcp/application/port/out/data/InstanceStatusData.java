@@ -56,5 +56,4 @@ public record InstanceStatusData(
         null,
         null);
   }
-
 }

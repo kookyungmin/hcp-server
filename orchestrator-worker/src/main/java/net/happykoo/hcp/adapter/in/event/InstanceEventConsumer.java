@@ -7,6 +7,7 @@ import net.happykoo.hcp.adapter.in.event.payload.InstanceProvisioningEvent;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.common.annotation.EventInAdapter;
+import net.happykoo.hcp.infrastructure.kafka.topic.KafkaTopics;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,7 +19,7 @@ public class InstanceEventConsumer {
 
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
 
-  @KafkaListener(topics = EventTopics.INSTANCE_PROVISIONING_TOPIC)
+  @KafkaListener(topics = KafkaTopics.INSTANCE_PROVISIONING_TOPIC)
   public void onInstanceProvisioning(
       ConsumerRecord<String, String> record,
       Acknowledgment ack

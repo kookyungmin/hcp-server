@@ -1,5 +1,7 @@
 package net.happykoo.hcp.adapter.out.event;
 
+import static net.happykoo.hcp.infrastructure.kafka.topic.KafkaTopics.INSTANCE_PROVISIONING_TOPIC;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,9 +25,8 @@ public class OutboxEventAdapter implements PublishOutboxEventPort {
   @Override
   public void publishOutboxEvent(OutboxEvent outboxEvent)
       throws ExecutionException, InterruptedException, TimeoutException {
-    String topic = outboxEvent.getEventType().getTopic();
     ProducerRecord<String, String> record = new ProducerRecord<>(
-        topic,
+        INSTANCE_PROVISIONING_TOPIC,
         outboxEvent.getEventId().toString(),
         outboxEvent.getPayload());
     kafkaTemplate.send(record)

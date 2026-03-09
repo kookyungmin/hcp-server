@@ -1,4 +1,4 @@
-package net.happykoo.hcp.infrastructure.config;
+package net.happykoo.hcp.infrastructure.kafka.config;
 
 import java.util.Map;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;

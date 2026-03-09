@@ -33,6 +33,17 @@ spring:
       properties:
         max.poll.records: 50
         max.poll.interval.ms: 300000
+    producer:
+      acks: all
+      retries: 10
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+      linger-ms: 5
+      batch-size: 32768
+      compression-type: lz4
+      delivery-timeout-ms: 120000
+      request-timeout-ms: 30000
 server:
   shutdown: graceful # graceful shutdown
   port: ${SPRING_WK_PORT}
