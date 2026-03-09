@@ -35,6 +35,12 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 
+  //querydsl
+  implementation("com.querydsl:querydsl-jpa:5.1.0:jakarta")
+  annotationProcessor("com.querydsl:querydsl-apt:5.1.0:jakarta")
+  annotationProcessor("jakarta.annotation:jakarta.annotation-api")
+  annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
   //MySql
   runtimeOnly("com.mysql:mysql-connector-j")
 

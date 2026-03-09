@@ -12,6 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -98,14 +99,25 @@ public class JpaInstanceEntity extends JpaTimeBaseEntity {
         instanceId,
         ownerId,
         name,
-        tags.stream()
-            .map(tag -> tag.getId().getTag())
-            .collect(Collectors.toSet()),
-        image.toDomain(),
-        vpc.toDomain(),
-        spec.toDomain(),
+        Optional.ofNullable(tags)
+            .map(t -> t.stream()
+                .map(tag -> tag.getId().getTag())
+                .collect(Collectors.toSet()))
+            .orElse(Set.of()),
+        Optional.ofNullable(image)
+            .map(JpaInstanceImageEntity::toDomain)
+            .orElse(null),
+        Optional.ofNullable(vpc)
+            .map(JpaNetworkVpcEntity::toDomain)
+            .orElse(null),
+        Optional.ofNullable(spec)
+            .map(JpaInstanceSpecEntity::toDomain)
+            .orElse(null),
         new InstanceStorage(storageType, storageSize),
-        status
+        status,
+        failureReason,
+        publicIp,
+        privateIp
     );
   }
 }

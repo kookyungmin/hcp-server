@@ -1,26 +1,33 @@
 package net.happykoo.hcp.adapter.out.persistence;
 
 import jakarta.persistence.EntityManager;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.happykoo.hcp.adapter.out.persistence.jpa.JpaInstancePagedQueryRepository;
 import net.happykoo.hcp.adapter.out.persistence.jpa.JpaInstanceRepository;
+import net.happykoo.hcp.adapter.out.persistence.jpa.condition.JpaInstanceQueryCondition;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceEntity;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceImageEntity;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceSpecEntity;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceTagEntity;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceTagId;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaNetworkVpcEntity;
+import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.instance.ServerInstance;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 @RequiredArgsConstructor
-public class InstancePersistenceAdapter implements SaveInstanceInfoPort {
+public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInstanceInfoPort {
 
   private final EntityManager entityManager;
   private final JpaInstanceRepository jpaInstanceRepository;
+  private final JpaInstancePagedQueryRepository jpaInstancePagedQueryRepository;
 
   @Override
   public ServerInstance saveInstanceInfo(ServerInstance instanceInfo) {
@@ -60,5 +67,21 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort {
     entity.setFailureReason(updateInstanceStatusData.failureReason());
     entity.setPublicIp(updateInstanceStatusData.publicIp());
     entity.setPrivateIp(updateInstanceStatusData.privateIp());
+  }
+
+  @Override
+  public Page<ServerInstance> findPagedInstanceByOwnerIdAndSearchKeyword(
+      UUID ownerId,
+      String searchKeyword,
+      Pageable pageable
+  ) {
+    return jpaInstancePagedQueryRepository.findPagedInstance(
+            JpaInstanceQueryCondition.builder()
+                .ownerId(ownerId)
+                .searchKeyword(searchKeyword)
+                .build(),
+            pageable
+        )
+        .map(JpaInstanceEntity::toDomain);
   }
 }

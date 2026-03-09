@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.happykoo.hcp.domain.network.NetworkVpc;
 
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public class ServerInstance {
 
   private UUID instanceId;
@@ -54,6 +54,24 @@ public class ServerInstance {
   public String getImageName() {
     return Optional.ofNullable(image)
         .map(InstanceImage::getImageName)
+        .orElse(null);
+  }
+
+  public String getOsName() {
+    return Optional.ofNullable(image)
+        .map(InstanceImage::getOsName)
+        .orElse(null);
+  }
+
+  public String getOsVersion() {
+    return Optional.ofNullable(image)
+        .map(InstanceImage::getOsVersion)
+        .orElse(null);
+  }
+
+  public String getVpcName() {
+    return Optional.ofNullable(vpc)
+        .map(NetworkVpc::getName)
         .orElse(null);
   }
 

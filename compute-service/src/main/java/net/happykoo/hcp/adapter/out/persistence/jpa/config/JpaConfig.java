@@ -1,4 +1,4 @@
-package net.happykoo.hcp.adapter.out.persistence.jpa;
+package net.happykoo.hcp.adapter.out.persistence.jpa.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

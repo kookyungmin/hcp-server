@@ -8,12 +8,15 @@ import com.google.gson.Gson;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.SaveInstanceStatusUseCase;
+import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.SaveInstanceStatusCommand;
 import net.happykoo.hcp.application.port.out.GeneratePayloadHashPort;
 import net.happykoo.hcp.application.port.out.GetIdempotencyRequestPort;
+import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveOutboxEventPort;
@@ -25,17 +28,20 @@ import net.happykoo.hcp.domain.instance.ServerInstance;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.domain.outbox.payload.InstanceProvisioningEventPayload;
 import net.happykoo.hcp.exception.IdempotencyConflictException;
+import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 @RequiredArgsConstructor
-public class InstanceService implements ProvisionInstanceUseCase, SaveInstanceStatusUseCase {
+public class InstanceService implements ProvisionInstanceUseCase,
+    SaveInstanceStatusUseCase, FindInstanceUseCase {
 
   private final GeneratePayloadHashPort generatePayloadHashPort;
   private final GetIdempotencyRequestPort getIdempotencyRequestPort;
   private final SaveIdempotencyRequestPort saveIdempotencyRequestPort;
   private final SaveInstanceInfoPort saveInstanceInfoPort;
   private final SaveOutboxEventPort saveOutboxEventPort;
+  private final GetInstanceInfoPort getInstanceInfoPort;
 
   @Override
   @Transactional
@@ -112,5 +118,16 @@ public class InstanceService implements ProvisionInstanceUseCase, SaveInstanceSt
         command.publicIp(),
         command.privateIp()
     ));
+  }
+
+  @Override
+  public Page<ServerInstance> findPagedInstanceByOwnerIdAndSearchKeyword(
+      FindPagedInstanceCommand command
+  ) {
+    return getInstanceInfoPort.findPagedInstanceByOwnerIdAndSearchKeyword(
+        command.ownerId(),
+        command.searchKeyword(),
+        command.pageable()
+    );
   }
 }
