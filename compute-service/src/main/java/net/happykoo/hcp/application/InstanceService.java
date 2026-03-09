@@ -9,12 +9,15 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.SaveInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.SaveInstanceStatusCommand;
 import net.happykoo.hcp.application.port.out.GeneratePayloadHashPort;
 import net.happykoo.hcp.application.port.out.GetIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveOutboxEventPort;
+import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.idempotency.IdempotencyRequest;
 import net.happykoo.hcp.domain.instance.InstanceStatus;
@@ -26,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 @RequiredArgsConstructor
-public class InstanceService implements ProvisionInstanceUseCase {
+public class InstanceService implements ProvisionInstanceUseCase, SaveInstanceStatusUseCase {
 
   private final GeneratePayloadHashPort generatePayloadHashPort;
   private final GetIdempotencyRequestPort getIdempotencyRequestPort;
@@ -97,6 +100,17 @@ public class InstanceService implements ProvisionInstanceUseCase {
         instance.getMemory(),
         instance.getStorageType(),
         instance.getStorageSize()
+    ));
+  }
+
+  @Override
+  public void saveInstanceStatus(SaveInstanceStatusCommand command) {
+    saveInstanceInfoPort.updateInstanceStatus(new UpdateInstanceStatusData(
+        command.instanceId(),
+        command.status(),
+        command.failureReason(),
+        command.publicIp(),
+        command.privateIp()
     ));
   }
 }

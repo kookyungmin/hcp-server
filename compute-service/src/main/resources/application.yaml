@@ -24,6 +24,15 @@ spring:
           time_zone: Asia/Seoul
   kafka:
     bootstrap-servers: ${SPRING_CP_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: compute-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        max.poll.records: 50
+        max.poll.interval.ms: 300000
     producer:
       acks: all
       retries: 10

@@ -10,8 +10,10 @@ import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceTagEntity;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaInstanceTagId;
 import net.happykoo.hcp.adapter.out.persistence.jpa.entity.JpaNetworkVpcEntity;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
+import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.PersistenceAdapter;
 import net.happykoo.hcp.domain.instance.ServerInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 @RequiredArgsConstructor
@@ -46,5 +48,17 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort {
     return jpaInstanceRepository.findWithAllByInstanceId(entity.getInstanceId())
         .map(JpaInstanceEntity::toDomain)
         .orElseThrow(() -> new IllegalStateException("인스턴스 저장이 실패했습니다."));
+  }
+
+  @Override
+  @Transactional
+  public void updateInstanceStatus(UpdateInstanceStatusData updateInstanceStatusData) {
+    var entity = jpaInstanceRepository.findById(updateInstanceStatusData.instanceId())
+        .orElseThrow(() -> new IllegalStateException("존재하지 않는 인스턴스입니다."));
+
+    entity.setStatus(updateInstanceStatusData.status());
+    entity.setFailureReason(updateInstanceStatusData.failureReason());
+    entity.setPublicIp(updateInstanceStatusData.publicIp());
+    entity.setPrivateIp(updateInstanceStatusData.privateIp());
   }
 }

@@ -4,12 +4,34 @@ import java.util.Map;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration
 public class KafkaConfig {
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory(
+      ConsumerFactory<String, String> consumerFactory
+  ) {
+    var factory = new ConcurrentKafkaListenerContainerFactory<String, String>();
+    factory.setConsumerFactory(consumerFactory);
+
+    //성공했을 때만, ack 해서 commit
+    factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+
+    //3초 간격으로 5번 재시도
+    var backoff = new FixedBackOff(3000L, 5L);
+    factory.setCommonErrorHandler(new DefaultErrorHandler(backoff));
+
+    return factory;
+  }
 
   @Bean
   public ProducerFactory<String, String> producerFactory(

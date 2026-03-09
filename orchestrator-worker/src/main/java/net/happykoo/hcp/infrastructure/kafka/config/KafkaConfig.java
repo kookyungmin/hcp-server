@@ -29,7 +29,6 @@ public class KafkaConfig {
     //성공했을 때만, ack 해서 commit
     factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 
-    //3초 간격으로 5번 재시도
     factory.setCommonErrorHandler(errorHandler);
 
     return factory;
