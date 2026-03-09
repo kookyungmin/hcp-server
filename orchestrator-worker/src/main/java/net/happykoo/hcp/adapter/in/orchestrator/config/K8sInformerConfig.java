@@ -24,7 +24,7 @@ public class K8sInformerConfig {
     SharedInformerFactory sharedInformerFactory = kubernetesClient.informers();
 
     SharedIndexInformer<Pod> podInformer = sharedInformerFactory.sharedIndexInformerFor(
-        Pod.class, 0L
+        Pod.class, 10000L
     );
     SharedIndexInformer<Deployment> deploymentInformer = sharedInformerFactory.sharedIndexInformerFor(
         Deployment.class, 0L

@@ -37,16 +37,8 @@ public class K8sInformerEventHandler {
 
       @Override
       public void onUpdate(Pod oldObj, Pod newObj) {
-        String oldReady = extractPodReady(oldObj);
-        String newReady = extractPodReady(newObj);
-
-        String oldReason = extractPodMainReason(oldObj);
-        String newReason = extractPodMainReason(newObj);
-        if (Objects.equals(oldReason, newReason) &&
-            Objects.equals(oldReady, newReady)) {
-          return;
-        }
-        handleEvent(oldObj, newObj);
+        //Pod 는 계속 Event 감시
+        handleEvent(newObj);
       }
 
       @Override
