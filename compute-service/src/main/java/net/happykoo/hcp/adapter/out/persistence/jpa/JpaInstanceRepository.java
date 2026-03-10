@@ -10,4 +10,6 @@ public interface JpaInstanceRepository extends JpaRepository<JpaInstanceEntity, 
 
   @EntityGraph(attributePaths = {"tags", "image", "spec", "vpc"})
   Optional<JpaInstanceEntity> findWithAllByInstanceId(UUID instanceId);
+
+  boolean existsByInstanceIdAndOwnerId(UUID instanceId, UUID ownerId);
 }

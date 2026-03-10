@@ -10,6 +10,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -43,14 +44,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
           h.remove(X_ROLES);
         });
 
-    var auth = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-
-    if (auth == null || !auth.startsWith(BEARER)) {
-      return chain.filter(exchange.mutate().request(reqBuilder.build()).build());
-    }
-
-    var accessToken = auth.substring("Bearer ".length()).trim();
-    if (accessToken.isEmpty()) {
+    var accessToken = getAccessToken(exchange.getRequest());
+    if (StringUtils.isBlank(accessToken)) {
       return chain.filter(exchange.mutate().request(reqBuilder.build()).build());
     }
 
@@ -70,6 +65,28 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
 
     return chain.filter(exchange.mutate().request(reqBuilder.build()).build());
+  }
+
+  private String getAccessToken(ServerHttpRequest request) {
+    var path = request.getURI().getPath();
+    if (path.startsWith("/computes/ws/instances")) {
+      return getAccessTokenByQueryParameters(request);
+    }
+    return getAccessTokenByHeader(request);
+  }
+
+  private String getAccessTokenByHeader(ServerHttpRequest request) {
+    var auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
+    if (auth == null || !auth.startsWith(BEARER)) {
+      return null;
+    }
+
+    return auth.substring("Bearer ".length()).trim();
+  }
+
+  private String getAccessTokenByQueryParameters(ServerHttpRequest request) {
+    return request.getQueryParams().getFirst("accessToken");
   }
 
   @Override

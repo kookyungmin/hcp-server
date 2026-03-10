@@ -9,10 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -32,7 +32,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
   @Bean
-  @ConditionalOnMissingBean(SecurityFilterChain.class)
+  @Order(100)
   public SecurityFilterChain filterChain(
       HttpSecurity http,
       SecurityProperties securityProperties,
@@ -68,7 +68,6 @@ public class SecurityConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(AccessDeniedHandler.class)
   AccessDeniedHandler accessDeniedHandler(
       ObjectMapper objectMapper
   ) {
@@ -80,7 +79,6 @@ public class SecurityConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(AuthenticationEntryPoint.class)
   AuthenticationEntryPoint authenticationEntryPoint(
       ObjectMapper objectMapper
   ) {

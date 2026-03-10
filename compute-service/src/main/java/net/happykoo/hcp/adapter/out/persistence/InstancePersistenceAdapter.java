@@ -84,4 +84,9 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
         )
         .map(JpaInstanceEntity::toDomain);
   }
+
+  @Override
+  public boolean existsByInstanceId(UUID ownerId, UUID instanceId) {
+    return jpaInstanceRepository.existsByInstanceIdAndOwnerId(instanceId, ownerId);
+  }
 }

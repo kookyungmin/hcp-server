@@ -10,4 +10,4 @@ logging:
       hibernate:
         orm:
           jdbc:
-            bind: TRACE
+            bind: INFO

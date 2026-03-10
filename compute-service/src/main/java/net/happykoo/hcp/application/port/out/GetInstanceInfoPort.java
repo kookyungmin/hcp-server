@@ -12,4 +12,6 @@ public interface GetInstanceInfoPort {
       String searchKeyword,
       Pageable pageable
   );
+
+  boolean existsByInstanceId(UUID ownerId, UUID instanceId);
 }
