@@ -14,7 +14,6 @@ import net.happykoo.hcp.application.port.out.ExecuteTerminalCommandPort;
 import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.GetTerminalSessionPort;
 import net.happykoo.hcp.application.port.out.SaveTerminalSessionPort;
-import net.happykoo.hcp.application.port.out.SendTerminalCommandResultPort;
 import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.terminal.TerminalMessage;
 import net.happykoo.hcp.domain.terminal.TerminalSession;
@@ -29,7 +28,6 @@ public class InstanceTerminalService implements OpenTerminalSessionUseCase,
   private final GetTerminalSessionPort getTerminalSessionPort;
   private final SaveTerminalSessionPort saveTerminalSessionPort;
   private final ExecuteTerminalCommandPort executeTerminalCommandPort;
-  private final SendTerminalCommandResultPort sendTerminalCommandResultPort;
 
   @Override
   public void open(OpenTerminalSessionCommand command) {
@@ -47,8 +45,6 @@ public class InstanceTerminalService implements OpenTerminalSessionUseCase,
 
     saveTerminalSessionPort.save(terminalSession);
     executeTerminalCommandPort.openInstanceTerminal(terminalSession);
-    sendTerminalCommandResultPort.send(terminalSession.getSessionId(),
-        TerminalMessage.ready());
   }
 
   @Override
@@ -68,11 +64,6 @@ public class InstanceTerminalService implements OpenTerminalSessionUseCase,
     }
     TerminalMessage terminalMessage = new Gson().fromJson(command.message(), TerminalMessage.class);
     switch (terminalMessage.type()) {
-      case RESIZE -> executeTerminalCommandPort.resizeTerminal(
-          command.sessionId(),
-          terminalMessage.cols(),
-          terminalMessage.rows()
-      );
       case PING -> executeTerminalCommandPort.ping(
           command.sessionId(),
           terminalMessage.message()
@@ -84,7 +75,6 @@ public class InstanceTerminalService implements OpenTerminalSessionUseCase,
   @Override
   public void close(CloseTerminalSessionCommand command) {
     executeTerminalCommandPort.close(command.sessionId());
-    sendTerminalCommandResultPort.close(command.sessionId());
     saveTerminalSessionPort.remove(command.sessionId());
   }
 }

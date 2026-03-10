@@ -53,6 +53,9 @@ outbox:
   poll-interval-ms: 2000
   batch-size: 200
   kafka-ack-timeout-ms: 5000
+websocket:
+  orchestrator-worker:
+    url: ${SPRING_WK_SERVICE_WS_URL}/ws/internal/computes
 
 
 

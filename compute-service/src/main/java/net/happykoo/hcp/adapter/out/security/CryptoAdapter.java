@@ -20,7 +20,7 @@ public class CryptoAdapter implements GeneratePayloadHashPort {
       }
       return hex.toString();
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("SHA-256 algorithm is not available", e);
+      throw new IllegalStateException("SHA-256 알고리즘을 이용할 수 없습니다.", e);
     }
   }
 }

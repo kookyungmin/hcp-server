@@ -28,8 +28,7 @@ public class ClientWebSocketAdapter implements SendTerminalCommandResultPort {
     try {
       session.sendMessage(new TextMessage(new Gson().toJson(message)));
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to send message to client. sessionId=" + sessionId,
-          e);
+      throw new IllegalStateException("소켓 메세지 전송에 실패 했습니다.", e);
     }
   }
 
@@ -43,8 +42,7 @@ public class ClientWebSocketAdapter implements SendTerminalCommandResultPort {
     try {
       session.sendMessage(new BinaryMessage(bytes));
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to send message to client. sessionId=" + sessionId,
-          e);
+      throw new IllegalStateException("소켓 메세지 전송에 실패 했습니다.", e);
     }
   }
 

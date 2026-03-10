@@ -18,4 +18,11 @@ public class TerminalSession {
         .map(TerminalUserContext::userId)
         .orElse(null);
   }
+
+  public String getJoinedRoles() {
+    return Optional.ofNullable(userContext)
+        .map(TerminalUserContext::roles)
+        .map(roles -> String.join(",", roles))
+        .orElse(null);
+  }
 }
