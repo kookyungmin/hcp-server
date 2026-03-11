@@ -26,6 +26,13 @@ docker build -t hcp_ubuntu:v1.0.0 . -f hcp_ubuntu.Dockerfile
 minikube image load hcp_ubuntu:v1.0.0
 ```
 
+rocky 이미지 load
+
+```
+docker build -t hcp_rocky:v1.0.0 . -f hcp_rocky.Dockerfile
+minikube image load hcp_rocky:v1.0.0
+```
+
 StorageClass
 
 ```
