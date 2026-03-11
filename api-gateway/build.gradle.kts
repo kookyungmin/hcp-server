@@ -22,6 +22,7 @@ dependencies {
   implementation(project(":common-util"))
   implementation(platform("org.springframework.cloud:spring-cloud-dependencies:2025.0.1"))
   implementation("org.springframework.cloud:spring-cloud-starter-gateway") // WebFlux Gateway
+  implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
 
   //Lombok
