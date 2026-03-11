@@ -32,7 +32,7 @@
 ### Use case (MVP)
 
 - [x] 인증 / 인가
-- [ ] Compute Server Resource (Ubuntu, Rocky) 관리
+- [x] Compute Server Resource (Ubuntu, Rocky) 관리
 - [ ] 사용량(Resource 시간 당 사용량, Traffic 용량) 및 과금 관리
 - [ ] 사용자 요금 정산 / 결제
 - [ ] 방화벽(보안 그룹) 관리

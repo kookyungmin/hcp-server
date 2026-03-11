@@ -24,12 +24,14 @@ dependencies {
 
   //Spring framework
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-websocket")
 //    implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-validation")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.kafka:spring-kafka")
   implementation("io.fabric8:kubernetes-client:6.9.0")
+  implementation("io.kubernetes:client-java:25.0.0")
 
   //Swagger
   implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")

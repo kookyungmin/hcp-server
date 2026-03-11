@@ -71,7 +71,7 @@ RUN set -euo pipefail; \
 # 2) SSH + sudo (키로그인 only) + banner 설정 파일
 RUN set -euo pipefail; \
   apt-get update; \
-  apt-get install -y --no-install-recommends openssh-server sudo ca-certificates; \
+  apt-get install -y --no-install-recommends openssh-server sudo ca-certificates vim; \
   rm -rf /var/lib/apt/lists/*; \
   \
   # sshd 런타임 디렉토리 (Ubuntu는 /run/sshd를 요구하는 경우가 많음)

@@ -69,7 +69,7 @@ public class LoginService implements LoginUseCase {
   public RefreshAccessTokenResult refreshAccessToken(String refreshToken) {
     var userId = getTokenPort.getRefreshTokenPayload(refreshToken).userId();
     if (userId == null) {
-      throw new IllegalStateException("리프레시 토큰이 유효하지 않습니다.");
+      throw new IllegalStateException("로그인이 필요합니다.");
     }
     var user = getUserPort.getUserById(UUID.fromString(userId))
         .orElseThrow(() -> new IllegalStateException("사용자가 존재하지 않습니다."));

@@ -8,7 +8,7 @@ public interface ExecuteTerminalCommandPort {
 
   void sendBinary(String sessionId, byte[] bytes);
 
-  void ping(String sessionId, String message);
+  void resize(String sessionId, Integer cols, Integer rows);
 
   void close(String sessionId);
 }

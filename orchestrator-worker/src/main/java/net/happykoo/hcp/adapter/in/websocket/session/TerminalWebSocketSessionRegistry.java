@@ -6,27 +6,35 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
-//WebSocket Registry
 @Component
 public class TerminalWebSocketSessionRegistry {
 
   private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
-  public void register(WebSocketSession session) {
+  public void register(String sessionId, WebSocketSession session) {
     WebSocketSession decorated = new ConcurrentWebSocketSessionDecorator(
         session,
         10_000, //10초
         1024 * 1024 //1MB
     );
-    sessions.put(session.getId(), decorated);
+    sessions.put(sessionId, decorated);
   }
 
   public WebSocketSession getSession(String sessionId) {
     return sessions.get(sessionId);
   }
 
-  public WebSocketSession remove(String sessionId) {
-    return sessions.remove(sessionId);
+  public String getSessionId(WebSocketSession session) {
+    return sessions.entrySet().stream()
+        .filter(entry -> ((ConcurrentWebSocketSessionDecorator) entry.getValue()).getDelegate()
+            .equals(session))
+        .map(Map.Entry::getKey)
+        .findFirst()
+        .orElse(null);
+  }
+
+  public void remove(String sessionId) {
+    sessions.remove(sessionId);
   }
 
 }

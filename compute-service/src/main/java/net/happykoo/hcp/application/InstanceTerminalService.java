@@ -64,9 +64,10 @@ public class InstanceTerminalService implements OpenTerminalSessionUseCase,
     }
     TerminalMessage terminalMessage = new Gson().fromJson(command.message(), TerminalMessage.class);
     switch (terminalMessage.type()) {
-      case PING -> executeTerminalCommandPort.ping(
+      case RESIZE -> executeTerminalCommandPort.resize(
           command.sessionId(),
-          terminalMessage.message()
+          terminalMessage.cols(),
+          terminalMessage.rows()
       );
       case CLOSE -> close(new CloseTerminalSessionCommand(command.sessionId()));
     }

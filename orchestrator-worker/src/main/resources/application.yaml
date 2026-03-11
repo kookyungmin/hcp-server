@@ -64,6 +64,7 @@ k8s:
   owner-label: hcp.owner
   storage-class-name: loopfs
   pod-runtime-class-name: gvisor
+  user-name: hcp_dev
 
 
 

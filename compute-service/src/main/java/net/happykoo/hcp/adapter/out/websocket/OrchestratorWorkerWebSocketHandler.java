@@ -47,6 +47,10 @@ public class OrchestratorWorkerWebSocketHandler extends AbstractWebSocketHandler
           terminalSession.getSessionId(),
           TerminalMessage.close()
       );
+      case ERROR -> sendTerminalCommandResultPort.send(
+          terminalSession.getSessionId(),
+          TerminalMessage.error(workerTerminalMessage.message())
+      );
     }
   }
 

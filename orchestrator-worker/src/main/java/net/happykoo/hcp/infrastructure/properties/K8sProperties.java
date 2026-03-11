@@ -21,5 +21,6 @@ public class K8sProperties {
   private String ownerLabel;
   private String storageClassName;
   private String podRuntimeClassName;
+  private String userName;
 
 }

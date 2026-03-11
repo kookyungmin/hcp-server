@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.out.websocket.payload.WorkerTerminalMessage;
+import net.happykoo.hcp.adapter.out.websocket.payload.WorkerTerminalMessageType;
 import net.happykoo.hcp.application.port.out.ExecuteTerminalCommandPort;
 import net.happykoo.hcp.application.port.out.SendTerminalCommandResultPort;
 import net.happykoo.hcp.domain.terminal.TerminalSession;
@@ -69,27 +70,31 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
   }
 
   @Override
+  public void resize(String sessionId, Integer cols, Integer rows) {
+    sendTextMessage(sessionId, WorkerTerminalMessage.resize(sessionId, cols, rows));
+  }
+
+  @Override
   public void close(String sessionId) {
-    WebSocketSession workerSession = workerSessions.remove(sessionId);
+    sendTextMessage(sessionId, WorkerTerminalMessage.close(sessionId));
+  }
+
+  void sendTextMessage(String sessionId, WorkerTerminalMessage terminalMessage) {
+    WebSocketSession workerSession = workerSessions.get(sessionId);
     if (workerSession == null) {
       return;
     }
 
     try {
       if (workerSession.isOpen()) {
-        var message = new Gson().toJson(WorkerTerminalMessage.close(
-            sessionId
-        ));
+        var message = new Gson().toJson(terminalMessage);
         workerSession.sendMessage(new TextMessage(message));
-        workerSession.close();
+        if (terminalMessage.type() == WorkerTerminalMessageType.CLOSE) {
+          workerSession.close();
+        }
       }
     } catch (Exception ignored) {
     }
-  }
-
-  @Override
-  public void ping(String sessionId, String message) {
-    //TODO: 후에 구현
   }
 
   void removeSession(String sessionId) {

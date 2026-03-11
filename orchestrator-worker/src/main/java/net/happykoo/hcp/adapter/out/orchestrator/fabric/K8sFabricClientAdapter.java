@@ -1,4 +1,4 @@
-package net.happykoo.hcp.adapter.out.orchestrator;
+package net.happykoo.hcp.adapter.out.orchestrator.fabric;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -28,6 +28,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
+import net.happykoo.hcp.application.port.out.data.PodData;
 import net.happykoo.hcp.common.annotation.OrchestratorAdapter;
 import net.happykoo.hcp.domain.instance.Instance;
 import net.happykoo.hcp.infrastructure.properties.K8sProperties;
@@ -37,7 +38,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @OrchestratorAdapter
 @RequiredArgsConstructor
 @EnableConfigurationProperties(K8sProperties.class)
-public class K8sOrchestrator implements ExecuteOrchestratorCommandPort {
+public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
 
   private final K8sProperties k8sProperties;
   private final KubernetesClient k8sClient;
@@ -83,6 +84,23 @@ public class K8sOrchestrator implements ExecuteOrchestratorCommandPort {
         pod,
         pvc,
         service
+    );
+  }
+
+  @Override
+  public PodData executeGetPodInfoCommand(UUID instanceId) {
+    String instanceIdString = instanceId.toString();
+
+    Map<String, String> labels = Map.of(k8sProperties.getInstanceLabel(), instanceIdString);
+    Pod pod = findPodByLabels(generateNamespaceName(instanceIdString), labels);
+
+    if (pod == null) {
+      throw new IllegalArgumentException("해당 Pod이 존재하지 않습니다.");
+    }
+
+    return new PodData(
+        pod.getMetadata().getNamespace(),
+        pod.getMetadata().getName()
     );
   }
 
@@ -325,7 +343,8 @@ public class K8sOrchestrator implements ExecuteOrchestratorCommandPort {
         .endMetadata()
         .withNewSpec()
         .withType(k8sProperties.getServiceType())
-        .withSelector(Map.of(k8sProperties.getAppKey(), generateAppName(instanceId)))
+        .withSelector(
+            Map.of(k8sProperties.getAppKey(), generateAppName(instanceId)))
         .addNewPort()
         .withName("ssh")
         .withPort(22)
@@ -348,7 +367,8 @@ public class K8sOrchestrator implements ExecuteOrchestratorCommandPort {
         .endMetadata()
         .withNewSpec()
         .withPodSelector(new LabelSelectorBuilder()
-            .addToMatchLabels(k8sProperties.getAppKey(), generateAppName(instanceId))
+            .addToMatchLabels(k8sProperties.getAppKey(),
+                generateAppName(instanceId))
             .build())
         .withPolicyTypes("Ingress")
         .withIngress(List.of())
