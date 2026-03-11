@@ -17,6 +17,8 @@
 본 프로젝트에서는 k8s 를 활용하여 최대한 클라우드 서비스를 흉내내는 것을 목표
 
 ![img.png](image/img.png)
+![img.png](image/img1.png)
+![img_1.png](image/img1_1.png)
 
 ### System Requirements
 
