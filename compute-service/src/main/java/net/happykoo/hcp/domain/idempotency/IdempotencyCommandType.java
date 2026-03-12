@@ -1,5 +1,6 @@
 package net.happykoo.hcp.domain.idempotency;
 
 public enum IdempotencyCommandType {
-  INSTANCE_PROVISIONING;
+  INSTANCE_PROVISIONING,
+  UPDATE_INSTANCE_LIFECYCLE;
 }

@@ -5,12 +5,15 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceReadPermission;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceWritePermission;
 import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
+import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceLifecycleRequest;
 import net.happykoo.hcp.adapter.in.web.resolver.IdempotencyKey;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceListResponse;
 import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.common.annotation.CurrentActor;
 import net.happykoo.hcp.common.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
@@ -30,6 +33,7 @@ public class InstanceController {
 
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
   private final FindInstanceUseCase findInstanceUseCase;
+  private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
 
   @PostMapping("/provisioning")
   @ServerInstanceWritePermission
@@ -47,6 +51,54 @@ public class InstanceController {
         request.specCode(),
         request.storageType(),
         request.storageSize(),
+        idempotencyKey
+    ));
+
+    return CommonResponseEntity.ok();
+  }
+
+  @PostMapping("/stop")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> stopInstance(
+      @IdempotencyKey String idempotencyKey,
+      @RequestBody UpdateInstanceLifecycleRequest request,
+      @CurrentActor Actor actor
+  ) {
+    updateInstanceLifecycleUseCase.stopInstance(new UpdateInstanceLifecycleCommand(
+        UUID.fromString(request.instanceId()),
+        UUID.fromString(actor.userId()),
+        idempotencyKey
+    ));
+
+    return CommonResponseEntity.ok();
+  }
+
+  @PostMapping("/restart")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> restartInstance(
+      @IdempotencyKey String idempotencyKey,
+      @RequestBody UpdateInstanceLifecycleRequest request,
+      @CurrentActor Actor actor
+  ) {
+    updateInstanceLifecycleUseCase.restartInstance(new UpdateInstanceLifecycleCommand(
+        UUID.fromString(request.instanceId()),
+        UUID.fromString(actor.userId()),
+        idempotencyKey
+    ));
+
+    return CommonResponseEntity.ok();
+  }
+
+  @PostMapping("/terminate")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> terminateInstance(
+      @IdempotencyKey String idempotencyKey,
+      @RequestBody UpdateInstanceLifecycleRequest request,
+      @CurrentActor Actor actor
+  ) {
+    updateInstanceLifecycleUseCase.terminateInstance(new UpdateInstanceLifecycleCommand(
+        UUID.fromString(request.instanceId()),
+        UUID.fromString(actor.userId()),
         idempotencyKey
     ));
 

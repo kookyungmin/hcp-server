@@ -11,4 +11,11 @@ public record SaveInstanceStatusCommand(
     String privateIp
 ) {
 
+  public SaveInstanceStatusCommand(
+      UUID instanceId,
+      InstanceStatus status
+  ) {
+    this(instanceId, status, null, null, null);
+  }
+
 }

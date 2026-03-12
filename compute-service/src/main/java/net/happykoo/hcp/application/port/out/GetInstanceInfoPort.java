@@ -14,4 +14,6 @@ public interface GetInstanceInfoPort {
   );
 
   boolean existsByInstanceId(UUID ownerId, UUID instanceId);
+
+  ServerInstance findInstance(UUID instanceId);
 }
