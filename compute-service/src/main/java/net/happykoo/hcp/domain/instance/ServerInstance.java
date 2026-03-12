@@ -118,4 +118,22 @@ public class ServerInstance {
         .map(InstanceStorage::getStorageSize)
         .orElse(0);
   }
+
+  public String getImageCode() {
+    return Optional.ofNullable(image)
+        .map(InstanceImage::getImageCode)
+        .orElse(null);
+  }
+
+  public String getVpcCode() {
+    return Optional.ofNullable(vpc)
+        .map(NetworkVpc::getVpcCode)
+        .orElse(null);
+  }
+
+  public String getSpecCode() {
+    return Optional.ofNullable(spec)
+        .map(InstanceSpec::getSpecCode)
+        .orElse(null);
+  }
 }

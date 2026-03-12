@@ -99,6 +99,16 @@ public class InstanceService implements ProvisionInstanceUseCase,
   }
 
   @Override
+  public ServerInstance findInstanceInfo(UUID instanceId, UUID ownerId) {
+    var instance = getInstanceInfoPort.findInstanceById(instanceId);
+    if (!instance.getOwnerId().equals(ownerId)) {
+      throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
+
+    }
+    return instance;
+  }
+
+  @Override
   public void saveInstanceStatus(SaveInstanceStatusCommand command) {
     saveInstanceInfoPort.updateInstanceStatus(new UpdateInstanceStatusData(
         command.instanceId(),
@@ -152,7 +162,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
       return;
     }
 
-    var instance = getInstanceInfoPort.findInstance(command.instanceId());
+    var instance = getInstanceInfoPort.findInstanceById(command.instanceId());
 
     if (!instance.getOwnerId().equals(command.ownerId())) {
       throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");

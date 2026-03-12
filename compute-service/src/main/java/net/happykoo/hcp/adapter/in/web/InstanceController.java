@@ -8,6 +8,7 @@ import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceLifecycleRequest;
 import net.happykoo.hcp.adapter.in.web.resolver.IdempotencyKey;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceListResponse;
+import net.happykoo.hcp.adapter.in.web.response.GetInstanceResponse;
 import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
@@ -21,6 +22,7 @@ import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -120,5 +122,18 @@ public class InstanceController {
             ))
         .map(GetInstanceListResponse::from);
     return CommonResponseEntity.ok(result);
+  }
+
+  @GetMapping("/info/{instanceId}")
+  @ServerInstanceReadPermission
+  public CommonResponseEntity<GetInstanceResponse> listInstance(
+      @PathVariable String instanceId,
+      @CurrentActor Actor actor
+  ) {
+    var result = findInstanceUseCase.findInstanceInfo(
+        UUID.fromString(instanceId),
+        UUID.fromString(actor.userId())
+    );
+    return CommonResponseEntity.ok(GetInstanceResponse.from(result));
   }
 }

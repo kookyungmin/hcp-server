@@ -12,4 +12,5 @@ public interface JpaInstanceRepository extends JpaRepository<JpaInstanceEntity, 
   Optional<JpaInstanceEntity> findWithAllByInstanceId(UUID instanceId);
 
   boolean existsByInstanceIdAndOwnerId(UUID instanceId, UUID ownerId);
+
 }

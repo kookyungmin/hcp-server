@@ -91,8 +91,15 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
   }
 
   @Override
-  public ServerInstance findInstance(UUID instanceId) {
+  public ServerInstance findInstanceById(UUID instanceId) {
     return jpaInstanceRepository.findById(instanceId)
+        .map(JpaInstanceEntity::toDomain)
+        .orElseThrow(() -> new IllegalStateException("인스턴스가 존재하지 않습니다."));
+  }
+
+  @Override
+  public ServerInstance findInstanceWithAllById(UUID instanceId) {
+    return jpaInstanceRepository.findWithAllByInstanceId(instanceId)
         .map(JpaInstanceEntity::toDomain)
         .orElseThrow(() -> new IllegalStateException("인스턴스가 존재하지 않습니다."));
   }
