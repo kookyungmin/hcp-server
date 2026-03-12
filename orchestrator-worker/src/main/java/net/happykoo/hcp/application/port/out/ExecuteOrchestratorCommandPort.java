@@ -18,4 +18,6 @@ public interface ExecuteOrchestratorCommandPort {
   void executeRestartInstanceCommand(UUID instanceId);
 
   void executeTerminateInstanceCommand(UUID instanceId);
+
+  void executeScaleInstanceCommand(Instance instance);
 }

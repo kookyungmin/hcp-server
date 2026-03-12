@@ -4,10 +4,13 @@ import com.google.gson.Gson;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceProvisioningEvent;
+import net.happykoo.hcp.adapter.in.event.payload.InstanceScalingEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceUpdateLifecycleEventPayload;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.ScaleInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.ScaleInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.common.annotation.EventInAdapter;
 import net.happykoo.hcp.infrastructure.kafka.topic.KafkaTopics;
@@ -22,6 +25,7 @@ public class InstanceEventConsumer {
 
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
   private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
+  private final ScaleInstanceUseCase scaleInstanceUseCase;
 
   @KafkaListener(topics = KafkaTopics.INSTANCE_PROVISIONING_TOPIC)
   public void onInstanceProvisioning(
@@ -70,6 +74,32 @@ public class InstanceEventConsumer {
       case "RESTARTING" -> updateInstanceLifecycleUseCase.restartInstance(command);
       case "TERMINATING" -> updateInstanceLifecycleUseCase.terminateInstance(command);
     }
+
+    ack.acknowledge();
+  }
+
+  @KafkaListener(topics = KafkaTopics.INSTANCE_SCALING_TOPIC)
+  public void onInstanceScaling(
+      ConsumerRecord<String, String> record,
+      Acknowledgment ack
+  ) {
+    if (StringUtils.isBlank(record.key())) {
+      ack.acknowledge();
+      return;
+    }
+    var event = new Gson().fromJson(record.value(), InstanceScalingEventPayload.class);
+
+    scaleInstanceUseCase.scaleInstance(
+        new ScaleInstanceCommand(
+            UUID.fromString(record.key()),
+            UUID.fromString(event.instanceId()),
+            UUID.fromString(event.ownerId()),
+            event.cpu(),
+            event.memory(),
+            event.storageType(),
+            event.storageSize()
+        )
+    );
 
     ack.acknowledge();
   }

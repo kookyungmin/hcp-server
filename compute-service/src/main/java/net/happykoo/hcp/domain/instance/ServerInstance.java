@@ -1,5 +1,6 @@
 package net.happykoo.hcp.domain.instance;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -49,6 +50,29 @@ public class ServerInstance {
         null,
         null
     );
+  }
+
+  public void changeSpec(InstanceSpec spec) {
+    this.spec = spec;
+  }
+
+  public void changeStorage(InstanceStorage storage) {
+    this.storage = storage;
+  }
+
+  public void clearTags() {
+    if (tags == null) {
+      return;
+    }
+    tags.clear();
+  }
+
+  public void addAllTags(Set<String> addingTags) {
+    if (tags == null) {
+      tags = new HashSet<>(addingTags);
+    } else {
+      tags.addAll(addingTags);
+    }
   }
 
   public String getImageName() {

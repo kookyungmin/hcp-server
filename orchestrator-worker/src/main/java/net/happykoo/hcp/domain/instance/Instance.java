@@ -18,4 +18,26 @@ public class Instance {
   private String memory;
   private String storageType;
   private int storageSize;
+
+  public Instance(
+      UUID instanceId,
+      UUID ownerId,
+      String cpu,
+      String memory,
+      String storageType,
+      int storageSize
+  ) {
+    this(
+        instanceId,
+        ownerId,
+        null,
+        null,
+        null,
+        null,
+        cpu,
+        memory,
+        storageType,
+        storageSize
+    );
+  }
 }

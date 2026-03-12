@@ -87,7 +87,7 @@ public class JpaInstanceEntity extends JpaTimeBaseEntity {
         null,
         instanceInfo.getStorage().getStorageType(),
         instanceInfo.getStorage().getStorageSize(),
-        InstanceStatus.PROVISIONING,
+        instanceInfo.getStatus(),
         instanceInfo.getFailureReason(),
         instanceInfo.getPublicIp(),
         instanceInfo.getPrivateIp()

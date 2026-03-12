@@ -7,9 +7,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.ScaleInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.WatchInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.ScaleInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.PublishInstanceStatusEventPort;
@@ -30,7 +32,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @RequiredArgsConstructor
 @EnableConfigurationProperties(IdempotencyProperties.class)
 public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceStatusUseCase,
-    UpdateInstanceLifecycleUseCase {
+    UpdateInstanceLifecycleUseCase, ScaleInstanceUseCase {
 
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
@@ -86,6 +88,22 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
     );
 
     publishInstanceStatusEventPort.publishInstanceStatusEvent(status);
+  }
+
+  @Override
+  public void scaleInstance(ScaleInstanceCommand command) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      executeOrchestratorCommandPort.executeScaleInstanceCommand(
+          new Instance(
+              command.instanceId(),
+              command.ownerId(),
+              command.cpu(),
+              command.memory(),
+              command.storageType(),
+              command.storageSize()
+          )
+      );
+    });
   }
 
   private void tryOrchestratorCommand(

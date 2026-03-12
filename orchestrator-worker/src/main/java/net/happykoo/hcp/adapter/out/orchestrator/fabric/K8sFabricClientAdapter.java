@@ -130,6 +130,82 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
         .delete();
   }
 
+  @Override
+  public void executeScaleInstanceCommand(Instance instance) {
+    executeStopInstanceCommand(instance.getInstanceId());
+    //TODO: storage PVC 재생성 -> Pod(PVC 2개 연결) 에서 데이터 복사 -> Pod(PVC 1개로 변경) -> PVC 1개 죽이고
+//    executeScaleUpStorage(instance);
+    executeScaleUpOrDownDeployment(instance);
+    executeRestartInstanceCommand(instance.getInstanceId());
+  }
+
+  private void executeScaleUpOrDownDeployment(Instance instance) {
+    String instanceId = instance.getInstanceId().toString();
+    String patch = String.format("""
+            {
+              "spec": {
+                "template": {
+                  "spec": {
+                    "containers": [
+                      {
+                        "name": "%s",
+                        "resources": {
+                          "requests": {
+                            "cpu": "%s",
+                            "memory": "%s"
+                          },
+                          "limits": {
+                            "cpu": "%s",
+                            "memory": "%s"
+                          }
+                        },
+                        "env": [
+                            {
+                              "name": "TOTAL_DISK_BYTES",
+                              "value": "%s"
+                            },
+                            {
+                              "name": "RESERVED_BYTES",
+                              "value": "0"
+                            }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+            """, generateAppName(instanceId), instance.getCpu(), instance.getMemory(),
+        instance.getCpu(), instance.getMemory(),
+        generateStorageByte(instance.getStorageSize()));
+
+    k8sClient.apps()
+        .deployments()
+        .inNamespace(generateNamespaceName(instanceId))
+        .withName(generateAppName(instanceId))
+        .patch(patch);
+  }
+
+  private void executeScaleUpStorage(Instance instance) {
+    String instanceId = instance.getInstanceId().toString();
+    String patch = String.format("""
+            {
+              "spec": {
+                "resources": {
+                  "requests": {
+                    "storage": "%sGi"
+                  }
+                }
+              }
+           }
+        """, instance.getStorageSize());
+
+    k8sClient.persistentVolumeClaims()
+        .inNamespace(generateNamespaceName(instanceId))
+        .withName(generatePersistentVolumeClaimName(instanceId))
+        .patch(patch);
+  }
+
   private Deployment findDeployment(String namespace, Map<String, String> labels) {
     return k8sClient.apps().deployments()
         .inNamespace(namespace)

@@ -6,15 +6,21 @@ import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceReadPermission;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceWritePermission;
 import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceLifecycleRequest;
+import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceSpecRequest;
+import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceTagRequest;
 import net.happykoo.hcp.adapter.in.web.resolver.IdempotencyKey;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceListResponse;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceResponse;
 import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceSpecUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceTagUseCase;
 import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceSpecCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceTagCommand;
 import net.happykoo.hcp.common.annotation.CurrentActor;
 import net.happykoo.hcp.common.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
@@ -22,6 +28,7 @@ import net.happykoo.hcp.common.web.security.Actor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +43,8 @@ public class InstanceController {
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
   private final FindInstanceUseCase findInstanceUseCase;
   private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
+  private final UpdateInstanceSpecUseCase updateInstanceSpecUseCase;
+  private final UpdateInstanceTagUseCase updateInstanceTagUseCase;
 
   @PostMapping("/provisioning")
   @ServerInstanceWritePermission
@@ -104,6 +113,42 @@ public class InstanceController {
         idempotencyKey
     ));
 
+    return CommonResponseEntity.ok();
+  }
+
+  @PatchMapping("/tag")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> updateInstanceTags(
+      @CurrentActor Actor actor,
+      @RequestBody UpdateInstanceTagRequest request
+  ) {
+    updateInstanceTagUseCase.updateInstanceTag(
+        new UpdateInstanceTagCommand(
+            UUID.fromString(actor.userId()),
+            UUID.fromString(request.instanceId()),
+            request.tags()
+        )
+    );
+    return CommonResponseEntity.ok();
+  }
+
+  @PatchMapping("/spec")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> updateInstanceSpec(
+      @CurrentActor Actor actor,
+      @RequestBody UpdateInstanceSpecRequest request,
+      @IdempotencyKey String idempotencyKey
+  ) {
+    updateInstanceSpecUseCase.updateInstanceSpec(
+        new UpdateInstanceSpecCommand(
+            UUID.fromString(actor.userId()),
+            UUID.fromString(request.instanceId()),
+            idempotencyKey,
+            request.specCode(),
+            request.storageType(),
+            request.storageSize()
+        )
+    );
     return CommonResponseEntity.ok();
   }
 

@@ -1,6 +1,7 @@
 package net.happykoo.hcp.application;
 
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.INSTANCE_PROVISIONING;
+import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.INSTANCE_SCALING;
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.UPDATE_INSTANCE_LIFECYCLE;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RESTARTING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RUNNING;
@@ -8,6 +9,7 @@ import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPED;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.TERMINATING;
 import static net.happykoo.hcp.domain.outbox.OutboxEventType.INSTANCE_PROVISIONING_EVENT;
+import static net.happykoo.hcp.domain.outbox.OutboxEventType.INSTANCE_SCALING_EVENT;
 import static net.happykoo.hcp.domain.outbox.OutboxEventType.UPDATE_INSTANCE_LIFECYCLE_EVENT;
 import static net.happykoo.hcp.domain.outbox.OutboxStatus.PENDING;
 
@@ -20,10 +22,14 @@ import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.SaveInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceSpecUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceTagUseCase;
 import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.SaveInstanceStatusCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceSpecCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceTagCommand;
 import net.happykoo.hcp.application.port.out.GeneratePayloadHashPort;
 import net.happykoo.hcp.application.port.out.GetIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
@@ -33,10 +39,13 @@ import net.happykoo.hcp.application.port.out.SaveOutboxEventPort;
 import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.UseCase;
 import net.happykoo.hcp.domain.idempotency.IdempotencyRequest;
+import net.happykoo.hcp.domain.instance.InstanceSpec;
 import net.happykoo.hcp.domain.instance.InstanceStatus;
+import net.happykoo.hcp.domain.instance.InstanceStorage;
 import net.happykoo.hcp.domain.instance.ServerInstance;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.domain.outbox.payload.InstanceProvisioningEventPayload;
+import net.happykoo.hcp.domain.outbox.payload.InstanceScalingEventPayload;
 import net.happykoo.hcp.domain.outbox.payload.InstanceUpdateLifecycleEventPayload;
 import net.happykoo.hcp.exception.IdempotencyConflictException;
 import org.springframework.data.domain.Page;
@@ -45,7 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 @UseCase
 @RequiredArgsConstructor
 public class InstanceService implements ProvisionInstanceUseCase,
-    SaveInstanceStatusUseCase, FindInstanceUseCase, UpdateInstanceLifecycleUseCase {
+    SaveInstanceStatusUseCase, FindInstanceUseCase, UpdateInstanceLifecycleUseCase,
+    UpdateInstanceTagUseCase, UpdateInstanceSpecUseCase {
 
   private final GeneratePayloadHashPort generatePayloadHashPort;
   private final GetIdempotencyRequestPort getIdempotencyRequestPort;
@@ -99,9 +109,9 @@ public class InstanceService implements ProvisionInstanceUseCase,
   }
 
   @Override
-  public ServerInstance findInstanceInfo(UUID instanceId, UUID ownerId) {
+  public ServerInstance findInstanceInfo(UUID instanceId, UUID requesterId) {
     var instance = getInstanceInfoPort.findInstanceById(instanceId);
-    if (!instance.getOwnerId().equals(ownerId)) {
+    if (!instance.getOwnerId().equals(requesterId)) {
       throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
 
     }
@@ -149,6 +159,70 @@ public class InstanceService implements ProvisionInstanceUseCase,
     updateInstanceLifecycle(command, TERMINATING);
   }
 
+  @Override
+  @Transactional
+  public void updateInstanceSpec(
+      UpdateInstanceSpecCommand command
+  ) {
+    //Idempotency (멱등성 체크)
+    var requestHash = generatePayloadHashPort.generateSha256Hash(command.payload());
+    if (!tryAcquireIdempotency(
+        command.requesterId(),
+        requestHash
+    )) {
+      return;
+    }
+
+    var instance = getInstanceInfoPort.findInstanceWithAllById(command.instanceId());
+    if (!instance.getOwnerId().equals(command.requesterId())) {
+      throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
+    }
+
+    if (instance.getStorageSize() > command.storageSize()) {
+      throw new IllegalStateException("데이터 유실로 인해 스토리지는 증설만 가능합니다.");
+    }
+
+    instance.changeSpec(new InstanceSpec(
+        command.specCode()
+    ));
+
+    instance.changeStorage(new InstanceStorage(
+        command.storageType(),
+        command.storageSize()
+    ));
+
+    var changedInstance = saveInstanceInfoPort.saveInstanceInfo(instance);
+
+    //outbox(for event broker) 저장
+    saveOutboxEventPort.saveOutboxEvent(new OutboxEvent(
+        UUID.randomUUID(),
+        INSTANCE_SCALING_EVENT,
+        buildInstanceScalingEventPayload(changedInstance),
+        PENDING,
+        0
+    ));
+
+    //Idempotency 저장
+    saveIdempotencyRequestPort.saveIdempotencyRequest(new IdempotencyRequest(
+        command.requesterId(),
+        command.idempotencyKey(),
+        INSTANCE_SCALING,
+        requestHash,
+        null
+    ));
+  }
+
+  @Override
+  public void updateInstanceTag(UpdateInstanceTagCommand command) {
+    var instance = getInstanceInfoPort.findInstanceWithAllById(command.instanceId());
+    if (!instance.getOwnerId().equals(command.requesterId())) {
+      throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
+    }
+    instance.clearTags();
+    instance.addAllTags(command.tagSet());
+    saveInstanceInfoPort.saveInstanceInfo(instance);
+  }
+
   private void updateInstanceLifecycle(
       UpdateInstanceLifecycleCommand command,
       InstanceStatus toBeStatus
@@ -156,7 +230,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
     var requestHash = generatePayloadHashPort.generateSha256Hash(
         command.payload() + toBeStatus.name());
     if (!tryAcquireIdempotency(
-        command.ownerId(),
+        command.requesterId(),
         requestHash
     )) {
       return;
@@ -164,7 +238,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
 
     var instance = getInstanceInfoPort.findInstanceById(command.instanceId());
 
-    if (!instance.getOwnerId().equals(command.ownerId())) {
+    if (!instance.getOwnerId().equals(command.requesterId())) {
       throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
     }
 
@@ -190,7 +264,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
     //Idempotency 저장
     {
       saveIdempotencyRequestPort.saveIdempotencyRequest(new IdempotencyRequest(
-          command.ownerId(),
+          command.requesterId(),
           command.idempotencyKey(),
           UPDATE_INSTANCE_LIFECYCLE,
           requestHash,
@@ -246,6 +320,19 @@ public class InstanceService implements ProvisionInstanceUseCase,
         instance.getInstanceId().toString(),
         instance.getOwnerId().toString(),
         status
+    ));
+  }
+
+  private String buildInstanceScalingEventPayload(
+      ServerInstance instance
+  ) {
+    return new Gson().toJson(new InstanceScalingEventPayload(
+        instance.getInstanceId().toString(),
+        instance.getOwnerId().toString(),
+        instance.getCpu(),
+        instance.getMemory(),
+        instance.getStorageType(),
+        instance.getStorageSize()
     ));
   }
 

@@ -4,11 +4,11 @@ import java.util.UUID;
 
 public record UpdateInstanceLifecycleCommand(
     UUID instanceId,
-    UUID ownerId,
+    UUID requesterId,
     String idempotencyKey
 ) {
 
   public String payload() {
-    return instanceId.toString() + ownerId.toString();
+    return instanceId.toString() + requesterId.toString();
   }
 }

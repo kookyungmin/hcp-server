@@ -35,7 +35,7 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
 
     //Tag 셋팅
     instanceInfo.getTags().forEach(tag -> {
-      var tagEntity = new JpaInstanceTagEntity(new JpaInstanceTagId(null, tag));
+      var tagEntity = new JpaInstanceTagEntity(new JpaInstanceTagId(entity.getInstanceId(), tag));
       tagEntity.setInstance(entity);
       entity.getTags().add(tagEntity);
     });
