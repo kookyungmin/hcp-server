@@ -4,8 +4,11 @@ import com.google.gson.Gson;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceProvisioningEvent;
+import net.happykoo.hcp.adapter.in.event.payload.InstanceUpdateLifecycleEventPayload;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.common.annotation.EventInAdapter;
 import net.happykoo.hcp.infrastructure.kafka.topic.KafkaTopics;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +21,7 @@ import org.springframework.kafka.support.Acknowledgment;
 public class InstanceEventConsumer {
 
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
+  private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
 
   @KafkaListener(topics = KafkaTopics.INSTANCE_PROVISIONING_TOPIC)
   public void onInstanceProvisioning(
@@ -28,7 +32,7 @@ public class InstanceEventConsumer {
       ack.acknowledge();
       return;
     }
-    InstanceProvisioningEvent event = new Gson().fromJson(record.value(),
+    var event = new Gson().fromJson(record.value(),
         InstanceProvisioningEvent.class);
     provisionInstanceUseCase.provisionInstance(new ProvisionInstanceCommand(
         UUID.fromString(record.key()),
@@ -43,6 +47,30 @@ public class InstanceEventConsumer {
         event.storageType(),
         event.storageSize()
     ));
+    ack.acknowledge();
+  }
+
+  @KafkaListener(topics = KafkaTopics.INSTANCE_UPDATE_LIFECYCLE_TOPIC)
+  public void onUpdateInstanceLifecycle(
+      ConsumerRecord<String, String> record,
+      Acknowledgment ack
+  ) {
+    if (StringUtils.isBlank(record.key())) {
+      ack.acknowledge();
+      return;
+    }
+    var event = new Gson().fromJson(record.value(), InstanceUpdateLifecycleEventPayload.class);
+    var command = new UpdateInstanceLifecycleCommand(
+        UUID.fromString(record.key()),
+        UUID.fromString(event.instanceId()),
+        UUID.fromString(event.ownerId())
+    );
+    switch (event.instanceStatus()) {
+      case "STOPPING" -> updateInstanceLifecycleUseCase.stopInstance(command);
+      case "RESTARTING" -> updateInstanceLifecycleUseCase.restartInstance(command);
+      case "TERMINATING" -> updateInstanceLifecycleUseCase.terminateInstance(command);
+    }
+
     ack.acknowledge();
   }
 }

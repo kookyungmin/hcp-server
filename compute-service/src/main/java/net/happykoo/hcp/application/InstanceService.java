@@ -2,7 +2,7 @@ package net.happykoo.hcp.application;
 
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.INSTANCE_PROVISIONING;
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.UPDATE_INSTANCE_LIFECYCLE;
-import static net.happykoo.hcp.domain.instance.InstanceStatus.RERUNNING;
+import static net.happykoo.hcp.domain.instance.InstanceStatus.RESTARTING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RUNNING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPED;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPING;
@@ -129,7 +129,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
   @Override
   @Transactional
   public void restartInstance(UpdateInstanceLifecycleCommand command) {
-    updateInstanceLifecycle(command, InstanceStatus.RERUNNING);
+    updateInstanceLifecycle(command, InstanceStatus.RESTARTING);
 
   }
 
@@ -203,8 +203,8 @@ public class InstanceService implements ProvisionInstanceUseCase,
       throw new IllegalStateException("인스턴스가 실행 상태이어야 합니다.");
     }
 
-    if (toBeStatus.equals(InstanceStatus.RERUNNING) &&
-        !List.of(STOPPED, RERUNNING).contains(instance.getStatus())) {
+    if (toBeStatus.equals(InstanceStatus.RESTARTING) &&
+        !List.of(STOPPED, RESTARTING).contains(instance.getStatus())) {
       throw new IllegalStateException("인스턴스가 중지 상태이어야 합니다.");
     }
   }

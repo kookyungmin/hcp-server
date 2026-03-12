@@ -3,6 +3,7 @@ package net.happykoo.hcp.adapter.in.event;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.FAILED;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.PROVISIONING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RUNNING;
+import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPED;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.TERMINATED;
 
 import com.google.gson.Gson;
@@ -75,6 +76,7 @@ public class InstanceStatusEventConsumer {
     return switch (status) {
       case SUCCESS -> RUNNING;
       case PROCESSING -> PROVISIONING;
+      case STOPPED -> STOPPED;
       case DELETED -> TERMINATED;
       case FAILED -> FAILED;
     };

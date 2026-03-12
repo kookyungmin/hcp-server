@@ -104,6 +104,32 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     );
   }
 
+  @Override
+  public void executeStopInstanceCommand(UUID instanceId) {
+    k8sClient.apps()
+        .deployments()
+        .inNamespace(generateNamespaceName(instanceId.toString()))
+        .withName(generateAppName(instanceId.toString()))
+        .scale(0);
+  }
+
+  @Override
+  public void executeRestartInstanceCommand(UUID instanceId) {
+    k8sClient.apps()
+        .deployments()
+        .inNamespace(generateNamespaceName(instanceId.toString()))
+        .withName(generateAppName(instanceId.toString()))
+        .scale(1);
+
+  }
+
+  @Override
+  public void executeTerminateInstanceCommand(UUID instanceId) {
+    k8sClient.namespaces()
+        .withName(generateNamespaceName(instanceId.toString()))
+        .delete();
+  }
+
   private Deployment findDeployment(String namespace, Map<String, String> labels) {
     return k8sClient.apps().deployments()
         .inNamespace(namespace)
@@ -195,16 +221,17 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
         .map(s -> s.stream()
             .allMatch(c -> Boolean.TRUE.equals(c.getReady())))
         .orElse(false) && pod.getStatus().getPhase().equals("Running");
-
-    boolean deploymentReady = Optional.ofNullable(deployment)
+    boolean serviceReady = service != null;
+    int deploymentReplicas = Optional.ofNullable(deployment)
         .map(Deployment::getStatus)
         .map(DeploymentStatus::getAvailableReplicas)
-        .map(r -> r > 0)
-        .orElse(false);
+        .orElse(0);
 
-    boolean serviceReady = service != null;
+    if (!podReady && deploymentReplicas == 0) {
+      return InstanceStatusData.stopped(instanceId);
+    }
 
-    if (podReady && pvcBound && deploymentReady && serviceReady) {
+    if (podReady && pvcBound && serviceReady && deploymentReplicas > 0) {
       return InstanceStatusData.success(
           instanceId,
           getPublicIp(pod, service),

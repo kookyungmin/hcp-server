@@ -12,4 +12,10 @@ public interface ExecuteOrchestratorCommandPort {
   InstanceStatusData executeGetInstanceStatusCommand(UUID instanceId);
 
   PodData executeGetPodInfoCommand(UUID instanceId);
+
+  void executeStopInstanceCommand(UUID instanceId);
+
+  void executeRestartInstanceCommand(UUID instanceId);
+
+  void executeTerminateInstanceCommand(UUID instanceId);
 }

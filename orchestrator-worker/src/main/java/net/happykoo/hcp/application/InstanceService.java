@@ -7,8 +7,10 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.WatchInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.PublishInstanceStatusEventPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
@@ -27,7 +29,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @UseCase
 @RequiredArgsConstructor
 @EnableConfigurationProperties(IdempotencyProperties.class)
-public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceStatusUseCase {
+public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceStatusUseCase,
+    UpdateInstanceLifecycleUseCase {
 
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
@@ -38,9 +41,60 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
   public void provisionInstance(
       ProvisionInstanceCommand command
   ) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      //orchestrator(k8s) 명령 실행
+      executeOrchestratorCommandPort.executeProvisionInstanceCommand(new Instance(
+          command.instanceId(),
+          command.ownerId(),
+          command.imageName(),
+          DefaultNetworkPolicy.fromString(command.defaultEgressPolicy()),
+          DefaultNetworkPolicy.fromString(command.defaultIngressPolicy()),
+          command.cidrBlock(),
+          command.cpu(),
+          command.memory(),
+          command.storageType(),
+          command.storageSize()
+      ));
+    });
+  }
+
+  @Override
+  public void stopInstance(UpdateInstanceLifecycleCommand command) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      executeOrchestratorCommandPort.executeStopInstanceCommand(command.instanceId());
+    });
+  }
+
+  @Override
+  public void restartInstance(UpdateInstanceLifecycleCommand command) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      executeOrchestratorCommandPort.executeRestartInstanceCommand(command.instanceId());
+    });
+  }
+
+  @Override
+  public void terminateInstance(UpdateInstanceLifecycleCommand command) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      executeOrchestratorCommandPort.executeTerminateInstanceCommand(command.instanceId());
+    });
+  }
+
+  @Override
+  public void watchStatusAndSendEvent(UUID instanceId) {
+    InstanceStatusData status = executeOrchestratorCommandPort.executeGetInstanceStatusCommand(
+        instanceId
+    );
+
+    publishInstanceStatusEventPort.publishInstanceStatusEvent(status);
+  }
+
+  private void tryOrchestratorCommand(
+      UUID eventId,
+      Runnable execOrchestratorCommand
+  ) {
     //멱등성 선점 시도
     var idempotency = new Idempotency(
-        command.eventId(),
+        eventId,
         IdempotencyStatus.PROCESSING,
         Instant.now().plusSeconds(idempotencyProperties.getProcessingTtlSeconds())
     );
@@ -55,19 +109,7 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
     }
 
     try {
-      //orchestrator(k8s) 명령 실행
-      executeOrchestratorCommandPort.executeProvisionInstanceCommand(new Instance(
-          command.instanceId(),
-          command.ownerId(),
-          command.imageName(),
-          DefaultNetworkPolicy.fromString(command.defaultEgressPolicy()),
-          DefaultNetworkPolicy.fromString(command.defaultIngressPolicy()),
-          command.cidrBlock(),
-          command.cpu(),
-          command.memory(),
-          command.storageType(),
-          command.storageSize()
-      ));
+      execOrchestratorCommand.run();
       idempotency.success();
     } catch (Exception e) {
       idempotency.failed();
@@ -76,14 +118,5 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
       //멱등성 상태 (update)
       saveIdempotencyPort.saveIdempotency(idempotency);
     }
-  }
-
-  @Override
-  public void watchStatusAndSendEvent(UUID instanceId) {
-    InstanceStatusData status = executeOrchestratorCommandPort.executeGetInstanceStatusCommand(
-        instanceId
-    );
-
-    publishInstanceStatusEventPort.publishInstanceStatusEvent(status);
   }
 }

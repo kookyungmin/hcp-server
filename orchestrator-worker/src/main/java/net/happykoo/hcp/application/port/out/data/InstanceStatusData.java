@@ -56,4 +56,14 @@ public record InstanceStatusData(
         null,
         null);
   }
+
+  public static InstanceStatusData stopped(String instanceId) {
+    return new InstanceStatusData(
+        instanceId,
+        InstanceStatus.STOPPED,
+        null,
+        null,
+        null
+    );
+  }
 }
