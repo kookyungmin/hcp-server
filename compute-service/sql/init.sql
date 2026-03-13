@@ -17,6 +17,15 @@ create table hcp_compute.h_instance(
     updated_at timestamp not null default now()
 );
 
+create table hcp_compute.h_instance_ssh_key(
+    instance_id binary(16) not null,
+    ssh_key_name varchar(128) not null,
+    ssh_key varchar(1024) not null,
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now(),
+    primary key(instance_id, ssh_key_name)
+);
+
 create table hcp_compute.h_instance_tag(
     instance_id binary(16) not null,
     tag varchar(256),

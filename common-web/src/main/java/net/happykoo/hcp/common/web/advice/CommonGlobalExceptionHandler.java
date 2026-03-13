@@ -1,5 +1,6 @@
 package net.happykoo.hcp.common.web.advice;
 
+import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -13,16 +14,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)
 public class CommonGlobalExceptionHandler {
 
-  @ExceptionHandler(NoResourceFoundException.class)
+  @ExceptionHandler(ResourceNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   public CommonResponseEntity<String> handleNoResourceFoundException(
-      NoResourceFoundException ex,
+      ResourceNotFoundException ex,
       @NonNull WebRequest request
   ) {
     return CommonResponseEntity.error(

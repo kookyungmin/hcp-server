@@ -9,4 +9,6 @@ public interface ExecuteTerminalCommandPort {
   void write(String sessionId, byte[] bytes);
 
   void resize(String sessionId, Integer cols, Integer rows);
+
+  void registerSshKey(String namespace, String podName, String sshKey);
 }

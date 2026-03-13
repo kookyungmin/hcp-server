@@ -16,6 +16,7 @@ import net.happykoo.hcp.application.port.out.GetUserAccountPort;
 import net.happykoo.hcp.application.port.out.GetUserPort;
 import net.happykoo.hcp.application.port.out.SaveTokenPort;
 import net.happykoo.hcp.common.annotation.UseCase;
+import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,7 @@ public class LoginService implements LoginUseCase {
   public LoginResult login(LoginCommand command) {
     //Email로 유저 정보 조회
     var userAccount = getUserAccountPort.getUserAccountByEmail(command.email())
-        .orElseThrow(() -> new IllegalStateException("사용자 계정이 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("사용자 계정이 존재하지 않습니다."));
 
     //비밀번호 비교
     if (!encryptPasswordPort.matches(command.password(), userAccount.getPasswordHash())) {
@@ -44,7 +45,7 @@ public class LoginService implements LoginUseCase {
 
     //계정 상태 확인
     var user = getUserPort.getUserById(userAccount.getUserId())
-        .orElseThrow(() -> new IllegalStateException("사용자가 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("사용자가 존재하지 않습니다."));
 
     if (!user.isActive()) {
       throw new IllegalStateException("활성화된 사용자가 아닙니다.");
@@ -72,7 +73,7 @@ public class LoginService implements LoginUseCase {
       throw new IllegalStateException("로그인이 필요합니다.");
     }
     var user = getUserPort.getUserById(UUID.fromString(userId))
-        .orElseThrow(() -> new IllegalStateException("사용자가 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("사용자가 존재하지 않습니다."));
 
     var accessToken = generatorTokenPort.createAccessToken(user);
     return new RefreshAccessTokenResult(accessToken);
@@ -83,10 +84,10 @@ public class LoginService implements LoginUseCase {
   @Cacheable(cacheManager = "userProfileCacheManager", cacheNames = USER_PROFILE, key = "#userId")
   public GetLoginUserInfo getLoginUserInfo(UUID userId) {
     var userAccountProfile = getUserAccountPort.getUserAccountViewById(userId)
-        .orElseThrow(() -> new IllegalStateException("사용자 계정이 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("사용자 계정이 존재하지 않습니다."));
 
     var userProfile = getUserPort.getUserProfileById(userId)
-        .orElseThrow(() -> new IllegalStateException("사용자가 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("사용자가 존재하지 않습니다."));
 
     return new GetLoginUserInfo(
         userId,

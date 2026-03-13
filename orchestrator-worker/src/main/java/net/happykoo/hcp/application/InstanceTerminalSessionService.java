@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.in.CloseTerminalSessionUseCase;
 import net.happykoo.hcp.application.port.in.HandleTerminalBinaryInputUseCase;
 import net.happykoo.hcp.application.port.in.OpenTerminalSessionUseCase;
+import net.happykoo.hcp.application.port.in.RegisterInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.ResizeTerminalSessionUseCase;
 import net.happykoo.hcp.application.port.in.command.CloseTerminalSessionCommand;
 import net.happykoo.hcp.application.port.in.command.HandleTerminalBinaryInputCommand;
 import net.happykoo.hcp.application.port.in.command.OpenTerminalSessionCommand;
+import net.happykoo.hcp.application.port.in.command.RegisterInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.ExecuteTerminalCommandPort;
 import net.happykoo.hcp.application.port.out.data.PodData;
@@ -17,7 +19,8 @@ import net.happykoo.hcp.domain.terminal.TerminalMessage;
 @UseCase
 @RequiredArgsConstructor
 public class InstanceTerminalSessionService implements OpenTerminalSessionUseCase,
-    HandleTerminalBinaryInputUseCase, CloseTerminalSessionUseCase, ResizeTerminalSessionUseCase {
+    HandleTerminalBinaryInputUseCase, CloseTerminalSessionUseCase, ResizeTerminalSessionUseCase,
+    RegisterInstanceSshKeyUseCase {
 
   private final ExecuteTerminalCommandPort executeTerminalCommandPort;
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
@@ -46,5 +49,16 @@ public class InstanceTerminalSessionService implements OpenTerminalSessionUseCas
         message.cols(),
         message.rows()
     );
+  }
+
+  @Override
+  public void registerInstanceSshKey(RegisterInstanceSshKeyCommand command) {
+    PodData podData = executeOrchestratorCommandPort.executeGetPodInfoCommand(command.instanceId());
+    executeTerminalCommandPort.registerSshKey(
+        podData.namespace(),
+        podData.podName(),
+        command.sshKey()
+    );
+
   }
 }

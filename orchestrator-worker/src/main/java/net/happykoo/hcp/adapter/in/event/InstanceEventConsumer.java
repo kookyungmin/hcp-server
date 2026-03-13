@@ -4,12 +4,15 @@ import com.google.gson.Gson;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceProvisioningEvent;
+import net.happykoo.hcp.adapter.in.event.payload.InstanceRegisterSshKeyEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceScalingEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceUpdateLifecycleEventPayload;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.RegisterInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.ScaleInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.RegisterInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.ScaleInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.common.annotation.EventInAdapter;
@@ -26,6 +29,7 @@ public class InstanceEventConsumer {
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
   private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
   private final ScaleInstanceUseCase scaleInstanceUseCase;
+  private final RegisterInstanceSshKeyUseCase registerInstanceSshKeyUseCase;
 
   @KafkaListener(topics = KafkaTopics.INSTANCE_PROVISIONING_TOPIC)
   public void onInstanceProvisioning(
@@ -101,6 +105,26 @@ public class InstanceEventConsumer {
         )
     );
 
+    ack.acknowledge();
+  }
+
+  @KafkaListener(topics = KafkaTopics.INSTANCE_REGISTER_SSH_KEY_TOPIC)
+  public void onRegisterInstanceSshKey(
+      ConsumerRecord<String, String> record,
+      Acknowledgment ack
+  ) {
+    if (StringUtils.isBlank(record.key())) {
+      ack.acknowledge();
+      return;
+    }
+    var event = new Gson().fromJson(record.value(), InstanceRegisterSshKeyEventPayload.class);
+
+    registerInstanceSshKeyUseCase.registerInstanceSshKey(
+        new RegisterInstanceSshKeyCommand(
+            UUID.fromString(event.instanceId()),
+            event.sshKey()
+        )
+    );
     ack.acknowledge();
   }
 }

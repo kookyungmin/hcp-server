@@ -30,6 +30,7 @@ import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
 import net.happykoo.hcp.application.port.out.data.PodData;
 import net.happykoo.hcp.common.annotation.OrchestratorAdapter;
+import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import net.happykoo.hcp.domain.instance.Instance;
 import net.happykoo.hcp.infrastructure.properties.K8sProperties;
 import org.apache.commons.lang3.StringUtils;
@@ -95,7 +96,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     Pod pod = findPodByLabels(generateNamespaceName(instanceIdString), labels);
 
     if (pod == null) {
-      throw new IllegalArgumentException("해당 Pod이 존재하지 않습니다.");
+      throw new ResourceNotFoundException("해당 Pod이 존재하지 않습니다.");
     }
 
     return new PodData(

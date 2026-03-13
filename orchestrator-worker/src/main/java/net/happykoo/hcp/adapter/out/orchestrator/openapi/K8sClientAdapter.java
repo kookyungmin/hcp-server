@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.out.ExecuteTerminalCommandPort;
 import net.happykoo.hcp.application.port.out.SendTerminalCommandResultPort;
 import net.happykoo.hcp.common.annotation.OrchestratorAdapter;
+import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import net.happykoo.hcp.domain.terminal.TerminalMessage;
 import net.happykoo.hcp.infrastructure.properties.K8sProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -90,6 +91,36 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
   }
 
   @Override
+  public void registerSshKey(String namespace, String podName, String sshKey) {
+    try {
+      Exec exec = new Exec(apiClient);
+
+      String command =
+          "mkdir -p ~/.ssh && " +
+              "rm -f ~/.ssh/authorized_keys &&" +
+              "touch ~/.ssh/authorized_keys && " +
+              "grep -qxF '" + sshKey + "' ~/.ssh/authorized_keys || " +
+              "echo '" + sshKey + "' >> ~/.ssh/authorized_keys && " +
+              "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys";
+
+      Process proc = exec.exec(
+          namespace,
+          podName,
+          new String[]{"/bin/sh", "-c", command},
+          null,
+          true,
+          true
+      );
+
+      proc.waitFor();
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+      throw new RuntimeException("SSH 등록 중 에러가 발생했습니다.");
+    }
+
+  }
+
+  @Override
   public void close(String sessionId) {
     K8sTerminalSession session = terminalSessionRegistry.remove(sessionId);
     if (session != null) {
@@ -133,7 +164,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
   private K8sTerminalSession requireSession(String sessionId) {
     K8sTerminalSession session = terminalSessionRegistry.get(sessionId);
     if (session == null) {
-      throw new IllegalStateException("명령을 실행할 세션이 존재하지 않습니다.");
+      throw new ResourceNotFoundException("명령을 실행할 세션이 존재하지 않습니다.");
     }
     return session;
   }

@@ -16,6 +16,7 @@ import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.PersistenceAdapter;
+import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import net.happykoo.hcp.domain.instance.ServerInstance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,7 +62,7 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
   @Transactional
   public void updateInstanceStatus(UpdateInstanceStatusData updateInstanceStatusData) {
     var entity = jpaInstanceRepository.findById(updateInstanceStatusData.instanceId())
-        .orElseThrow(() -> new IllegalStateException("존재하지 않는 인스턴스입니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 인스턴스입니다."));
 
     entity.setStatus(updateInstanceStatusData.status());
     entity.setFailureReason(updateInstanceStatusData.failureReason());
@@ -94,13 +95,13 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
   public ServerInstance findInstanceById(UUID instanceId) {
     return jpaInstanceRepository.findById(instanceId)
         .map(JpaInstanceEntity::toDomain)
-        .orElseThrow(() -> new IllegalStateException("인스턴스가 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("인스턴스가 존재하지 않습니다."));
   }
 
   @Override
   public ServerInstance findInstanceWithAllById(UUID instanceId) {
     return jpaInstanceRepository.findWithAllByInstanceId(instanceId)
         .map(JpaInstanceEntity::toDomain)
-        .orElseThrow(() -> new IllegalStateException("인스턴스가 존재하지 않습니다."));
+        .orElseThrow(() -> new ResourceNotFoundException("인스턴스가 존재하지 않습니다."));
   }
 }

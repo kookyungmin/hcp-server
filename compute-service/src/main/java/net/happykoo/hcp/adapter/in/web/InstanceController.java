@@ -5,19 +5,25 @@ import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceReadPermission;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceWritePermission;
 import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
+import net.happykoo.hcp.adapter.in.web.request.RegisterSshKey;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceLifecycleRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceSpecRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceTagRequest;
 import net.happykoo.hcp.adapter.in.web.resolver.IdempotencyKey;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceListResponse;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceResponse;
+import net.happykoo.hcp.adapter.in.web.response.GetSshKeyResponse;
+import net.happykoo.hcp.application.port.in.FindInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
+import net.happykoo.hcp.application.port.in.SaveInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceSpecUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceTagUseCase;
+import net.happykoo.hcp.application.port.in.command.FindInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.RegisterInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceSpecCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceTagCommand;
@@ -45,6 +51,8 @@ public class InstanceController {
   private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
   private final UpdateInstanceSpecUseCase updateInstanceSpecUseCase;
   private final UpdateInstanceTagUseCase updateInstanceTagUseCase;
+  private final FindInstanceSshKeyUseCase findInstanceSshKeyUseCase;
+  private final SaveInstanceSshKeyUseCase saveInstanceSshKeyUseCase;
 
   @PostMapping("/provisioning")
   @ServerInstanceWritePermission
@@ -150,6 +158,44 @@ public class InstanceController {
         )
     );
     return CommonResponseEntity.ok();
+  }
+
+  @PostMapping("/ssh-key")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> updateInstanceSshKey(
+      @CurrentActor Actor actor,
+      @RequestBody RegisterSshKey request,
+      @IdempotencyKey String idempotencyKey
+
+  ) {
+    saveInstanceSshKeyUseCase.saveInstanceSshKey(
+        new RegisterInstanceSshKeyCommand(
+            UUID.fromString(request.instanceId()),
+            UUID.fromString(actor.userId()),
+            idempotencyKey,
+            request.keyName(),
+            request.sshKey()
+        ));
+    return CommonResponseEntity.ok();
+  }
+
+  @GetMapping("/ssh-key/{instanceId}")
+  @ServerInstanceReadPermission
+  public CommonResponseEntity<GetSshKeyResponse> getInstanceSshKey(
+      @PathVariable String instanceId,
+      @CurrentActor Actor actor
+  ) {
+    var sshPublicKey = findInstanceSshKeyUseCase.findInstanceSshKey(
+        new FindInstanceSshKeyCommand(
+            UUID.fromString(instanceId),
+            UUID.fromString(actor.userId())
+        )
+    );
+    return CommonResponseEntity.ok(new GetSshKeyResponse(
+        sshPublicKey.getInstanceId(),
+        sshPublicKey.getName(),
+        sshPublicKey.getKey()
+    ));
   }
 
   @GetMapping("/list")
