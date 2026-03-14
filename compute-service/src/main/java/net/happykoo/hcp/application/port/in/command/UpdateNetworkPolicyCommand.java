@@ -2,6 +2,7 @@ package net.happykoo.hcp.application.port.in.command;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import net.happykoo.hcp.domain.network.NetworkPolicy;
 
 public record UpdateNetworkPolicyCommand(
@@ -11,4 +12,10 @@ public record UpdateNetworkPolicyCommand(
     List<NetworkPolicy> networkPolicies
 ) {
 
+  public String payload() {
+    return networkPolicies
+        .stream()
+        .map(NetworkPolicy::toString)
+        .collect(Collectors.joining());
+  }
 }

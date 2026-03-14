@@ -4,6 +4,7 @@ import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.INSTANC
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.INSTANCE_SCALING;
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.REGISTER_SSH_KEY;
 import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.UPDATE_INSTANCE_LIFECYCLE;
+import static net.happykoo.hcp.domain.idempotency.IdempotencyCommandType.UPDATE_INSTANCE_NETWORK_POLICY;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RESTARTING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.RUNNING;
 import static net.happykoo.hcp.domain.instance.InstanceStatus.STOPPED;
@@ -13,6 +14,7 @@ import static net.happykoo.hcp.domain.outbox.OutboxEventType.INSTANCE_PROVISIONI
 import static net.happykoo.hcp.domain.outbox.OutboxEventType.INSTANCE_SCALING_EVENT;
 import static net.happykoo.hcp.domain.outbox.OutboxEventType.REGISTER_SSH_KEY_EVENT;
 import static net.happykoo.hcp.domain.outbox.OutboxEventType.UPDATE_INSTANCE_LIFECYCLE_EVENT;
+import static net.happykoo.hcp.domain.outbox.OutboxEventType.UPDATE_INSTANCE_NETWORK_POLICY_EVENT;
 import static net.happykoo.hcp.domain.outbox.OutboxStatus.PENDING;
 
 import com.google.gson.Gson;
@@ -46,9 +48,11 @@ import net.happykoo.hcp.application.port.out.GeneratePayloadHashPort;
 import net.happykoo.hcp.application.port.out.GetIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.GetInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.GetInstanceSshKeyPort;
+import net.happykoo.hcp.application.port.out.GetNetworkPolicyPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyRequestPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceInfoPort;
 import net.happykoo.hcp.application.port.out.SaveInstanceSshKeyPort;
+import net.happykoo.hcp.application.port.out.SaveNetworkPolicyPort;
 import net.happykoo.hcp.application.port.out.SaveOutboxEventPort;
 import net.happykoo.hcp.application.port.out.data.UpdateInstanceStatusData;
 import net.happykoo.hcp.common.annotation.UseCase;
@@ -62,10 +66,12 @@ import net.happykoo.hcp.domain.instance.ServerInstance;
 import net.happykoo.hcp.domain.network.NetworkPolicy;
 import net.happykoo.hcp.domain.outbox.OutboxEvent;
 import net.happykoo.hcp.domain.outbox.OutboxEventType;
+import net.happykoo.hcp.domain.outbox.payload.InstanceNetworkPolicyEventPayload;
 import net.happykoo.hcp.domain.outbox.payload.InstanceProvisioningEventPayload;
 import net.happykoo.hcp.domain.outbox.payload.InstanceRegisterSshKeyEventPayload;
 import net.happykoo.hcp.domain.outbox.payload.InstanceScalingEventPayload;
 import net.happykoo.hcp.domain.outbox.payload.InstanceUpdateLifecycleEventPayload;
+import net.happykoo.hcp.domain.outbox.payload.InstanceUpdateNetworkPolicyEventPayload;
 import net.happykoo.hcp.exception.IdempotencyConflictException;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +91,8 @@ public class InstanceService implements ProvisionInstanceUseCase,
   private final GetInstanceInfoPort getInstanceInfoPort;
   private final GetInstanceSshKeyPort getInstanceSshKeyPort;
   private final SaveInstanceSshKeyPort saveInstanceSshKeyPort;
+  private final GetNetworkPolicyPort getNetworkPolicyPort;
+  private final SaveNetworkPolicyPort saveNetworkPolicyPort;
 
   @Override
   @Transactional
@@ -199,8 +207,28 @@ public class InstanceService implements ProvisionInstanceUseCase,
   }
 
   @Override
+  @Transactional
   public void updateNetworkPolicy(UpdateNetworkPolicyCommand command) {
 
+    tryAcquireIdempotencyAndSaveOutboxEvent(
+        command.requesterId(),
+        command.idempotencyKey(),
+        UPDATE_INSTANCE_NETWORK_POLICY,
+        command.payload(),
+        UPDATE_INSTANCE_NETWORK_POLICY_EVENT,
+        () -> {
+          var instance = getInstanceInfoPort.findInstanceById(command.instanceId());
+          if (!instance.getOwnerId().equals(command.requesterId())) {
+            throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
+          }
+
+          saveNetworkPolicyPort.saveAllNetworkPolicy(command.networkPolicies());
+
+          return command.networkPolicies();
+        },
+        (networkPolicies) -> buildInstanceNetworkPolicyEventPayload(command.instanceId(),
+            networkPolicies)
+    );
   }
 
   @Override
@@ -237,7 +265,12 @@ public class InstanceService implements ProvisionInstanceUseCase,
 
   @Override
   public List<NetworkPolicy> getNetworkPolicy(GetNetworkPolicyCommand command) {
-    return List.of();
+    var instance = getInstanceInfoPort.findInstanceById(command.instanceId());
+    if (!instance.getOwnerId().equals(command.requesterId())) {
+      throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
+
+    }
+    return getNetworkPolicyPort.findAllNetworkPolicies(command.instanceId());
   }
 
   @Override
@@ -372,6 +405,25 @@ public class InstanceService implements ProvisionInstanceUseCase,
       return false;
     }
     return true;
+  }
+
+  private String buildInstanceNetworkPolicyEventPayload(
+      UUID instanceId,
+      List<NetworkPolicy> networkPolicies
+  ) {
+    var instanceIdStr = instanceId.toString();
+    var networkPolicyEvents = networkPolicies.stream()
+        .map(networkPolicy -> new InstanceNetworkPolicyEventPayload(
+            instanceIdStr,
+            networkPolicy.getType().name(),
+            networkPolicy.getPort(),
+            networkPolicy.getIpCidr()
+        ))
+        .toList();
+    return new Gson().toJson(new InstanceUpdateNetworkPolicyEventPayload(
+        instanceIdStr,
+        networkPolicyEvents
+    ));
   }
 
   private String buildInstanceLifecycleEventPayload(
