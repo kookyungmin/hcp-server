@@ -1,36 +1,46 @@
 package net.happykoo.hcp.adapter.in.web;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceReadPermission;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceWritePermission;
 import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
-import net.happykoo.hcp.adapter.in.web.request.RegisterSshKey;
+import net.happykoo.hcp.adapter.in.web.request.RegisterSshKeyRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceLifecycleRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceSpecRequest;
 import net.happykoo.hcp.adapter.in.web.request.UpdateInstanceTagRequest;
+import net.happykoo.hcp.adapter.in.web.request.UpdateNetworkPolicyRequest;
 import net.happykoo.hcp.adapter.in.web.resolver.IdempotencyKey;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceListResponse;
 import net.happykoo.hcp.adapter.in.web.response.GetInstanceResponse;
+import net.happykoo.hcp.adapter.in.web.response.GetNetworkPolicyResponse;
 import net.happykoo.hcp.adapter.in.web.response.GetSshKeyResponse;
+import net.happykoo.hcp.adapter.in.web.response.NetworkPolicyResponse;
 import net.happykoo.hcp.application.port.in.FindInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.FindInstanceUseCase;
+import net.happykoo.hcp.application.port.in.GetNetworkPolicyUseCase;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.SaveInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceSpecUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceTagUseCase;
+import net.happykoo.hcp.application.port.in.UpdateNetworkPolicyUseCase;
 import net.happykoo.hcp.application.port.in.command.FindInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.FindPagedInstanceCommand;
+import net.happykoo.hcp.application.port.in.command.GetNetworkPolicyCommand;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.RegisterInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceSpecCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceTagCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateNetworkPolicyCommand;
 import net.happykoo.hcp.common.annotation.CurrentActor;
 import net.happykoo.hcp.common.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import net.happykoo.hcp.common.web.security.Actor;
+import net.happykoo.hcp.domain.network.NetworkPolicy;
+import net.happykoo.hcp.domain.network.NetworkPolicyType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +63,8 @@ public class InstanceController {
   private final UpdateInstanceTagUseCase updateInstanceTagUseCase;
   private final FindInstanceSshKeyUseCase findInstanceSshKeyUseCase;
   private final SaveInstanceSshKeyUseCase saveInstanceSshKeyUseCase;
+  private final UpdateNetworkPolicyUseCase updateNetworkPolicyUseCase;
+  private final GetNetworkPolicyUseCase getNetworkPolicyUseCase;
 
   @PostMapping("/provisioning")
   @ServerInstanceWritePermission
@@ -164,7 +176,7 @@ public class InstanceController {
   @ServerInstanceWritePermission
   public CommonResponseEntity<Void> updateInstanceSshKey(
       @CurrentActor Actor actor,
-      @RequestBody RegisterSshKey request,
+      @RequestBody RegisterSshKeyRequest request,
       @IdempotencyKey String idempotencyKey
 
   ) {
@@ -177,6 +189,79 @@ public class InstanceController {
             request.sshKey()
         ));
     return CommonResponseEntity.ok();
+  }
+
+  @PostMapping("/network-policy")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<Void> updateInstanceNetworkPolicy(
+      @CurrentActor Actor actor,
+      @RequestBody UpdateNetworkPolicyRequest request,
+      @IdempotencyKey String idempotencyKey
+  ) {
+    var instanceId = UUID.fromString(request.instanceId());
+    var networkPolicies = new ArrayList<NetworkPolicy>();
+
+    request.ingressPolicies()
+        .stream()
+        .map(npr -> new NetworkPolicy(
+            instanceId,
+            NetworkPolicyType.INGRESS,
+            npr.policyName(),
+            npr.ipCidr(),
+            npr.port()
+        ))
+        .forEach(networkPolicies::add);
+    request.egressPolicies()
+        .stream()
+        .map(npr -> new NetworkPolicy(
+            instanceId,
+            NetworkPolicyType.INGRESS,
+            npr.policyName(),
+            npr.ipCidr(),
+            npr.port()
+        ))
+        .forEach(networkPolicies::add);
+    updateNetworkPolicyUseCase.updateNetworkPolicy(new UpdateNetworkPolicyCommand(
+        instanceId,
+        UUID.fromString(actor.userId()),
+        idempotencyKey,
+        networkPolicies
+    ));
+    return CommonResponseEntity.ok();
+  }
+
+  @GetMapping("/network-policy/{instanceId}")
+  @ServerInstanceWritePermission
+  public CommonResponseEntity<GetNetworkPolicyResponse> getInstanceNetworkPolicy(
+      @PathVariable String instanceId,
+      @CurrentActor Actor actor
+  ) {
+    var networkPolicies = getNetworkPolicyUseCase.getNetworkPolicy(new GetNetworkPolicyCommand(
+        UUID.fromString(instanceId),
+        UUID.fromString(actor.userId())
+    ));
+
+    var ingressPolicies = new ArrayList<NetworkPolicyResponse>();
+    var egressPolicies = new ArrayList<NetworkPolicyResponse>();
+
+    for (var networkPolicy : networkPolicies) {
+      var response = new NetworkPolicyResponse(
+          networkPolicy.getPolicyName(),
+          networkPolicy.getPort(),
+          networkPolicy.getIpCidr()
+      );
+      if (networkPolicy.getType() == NetworkPolicyType.INGRESS) {
+        ingressPolicies.add(response);
+      } else {
+        egressPolicies.add(response);
+      }
+    }
+
+    return CommonResponseEntity.ok(new GetNetworkPolicyResponse(
+        instanceId,
+        ingressPolicies,
+        egressPolicies
+    ));
   }
 
   @GetMapping("/ssh-key/{instanceId}")

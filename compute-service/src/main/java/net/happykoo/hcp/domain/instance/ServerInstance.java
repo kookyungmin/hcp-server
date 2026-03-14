@@ -160,4 +160,8 @@ public class ServerInstance {
         .map(InstanceSpec::getSpecCode)
         .orElse(null);
   }
+
+  public void updateStatus(InstanceStatus status) {
+    this.status = status;
+  }
 }
