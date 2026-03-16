@@ -80,7 +80,7 @@ metadata:
     app:  hcp-app
     hcp.instanceId: "7b920f10-767d-4fee-bbd2-259cae3e7c9f"
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: hcp-app
   ports:

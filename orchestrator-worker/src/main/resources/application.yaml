@@ -58,7 +58,7 @@ k8s:
   pvc-access-mode: ReadWriteOnce
   pvc-storage-unit: Gi
   service-key: svc
-  service-type: NodePort
+  service-type: LoadBalancer
   network-policy-key: netpol
   container-image-pull-policy: IfNotPresent
   instance-label: hcp.instanceId

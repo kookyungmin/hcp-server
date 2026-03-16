@@ -11,6 +11,7 @@ minikube start \
   --memory=8192 \
   --cni=calico
 minikube addons enable gvisor
+minikube addons enable metallb
 minikube tunnel
 ```
 

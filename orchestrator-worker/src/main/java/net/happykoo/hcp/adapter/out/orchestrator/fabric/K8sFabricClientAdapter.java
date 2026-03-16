@@ -2,10 +2,10 @@ package net.happykoo.hcp.adapter.out.orchestrator.fabric;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
+import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.LoadBalancerStatus;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.Node;
-import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
+import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
@@ -30,6 +31,8 @@ import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPeerBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPort;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -203,7 +206,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     k8sClient.services()
         .inNamespace(namespace)
         .withName(serviceName)
-        .patch(patched);
+        .patch(PatchContext.of(PatchType.JSON_MERGE), patched);
   }
 
   private void updateNetworkPolicy(
@@ -484,9 +487,8 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     if (podReady && pvcBound && serviceReady && deploymentReplicas > 0) {
       return InstanceStatusData.success(
           instanceId,
-          getPublicIp(pod),
-          getPrivateIp(service),
-          getServicePortMessage(service)
+          getPublicIp(service),
+          getPrivateIp(service)
       );
     }
 
@@ -504,15 +506,12 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
         .orElse(null);
   }
 
-  private String getPublicIp(Pod pod) {
-    return Optional.ofNullable(pod.getSpec().getNodeName())
-        .map(nodeName -> k8sClient.nodes().withName(nodeName).get())
-        .map(Node::getStatus)
-        .flatMap(status -> status.getAddresses()
-            .stream()
-            .filter(a -> "InternalIP".equals(a.getType()))
-            .map(NodeAddress::getAddress)
-            .findFirst())
+  private String getPublicIp(Service service) {
+    return Optional.ofNullable(service.getStatus())
+        .map(ServiceStatus::getLoadBalancer)
+        .map(LoadBalancerStatus::getIngress)
+        .flatMap(ingress -> ingress.stream().findFirst())
+        .map(LoadBalancerIngress::getIp)
         .orElse(null);
   }
 
@@ -625,6 +624,12 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
         .endMetadata()
         .withNewSpec()
         .withType(k8sProperties.getServiceType())
+        .addNewPort()
+        .withName("ssh")
+        .withPort(22)
+        .withTargetPort(new IntOrString(22))
+        .withProtocol("TCP")
+        .endPort()
         .withSelector(
             Map.of(k8sProperties.getAppKey(), generateAppName(instanceId)))
         .endSpec()
@@ -711,10 +716,21 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private List<ServicePort> buildServicePorts(List<InstanceNetworkPolicy> networkPolicies) {
-    return networkPolicies.stream()
+    var ports = new ArrayList<>(networkPolicies.stream()
         .filter(np -> np.getType() == NetworkPolicyType.INGRESS)
         .flatMap(np -> toServicePort(np).stream())
-        .toList();
+        .toList());
+
+    if (ports.isEmpty()) {
+      ports.add(new ServicePortBuilder()
+          .withName("ssh")
+          .withPort(22)
+          .withTargetPort(new IntOrString(22))
+          .withProtocol("TCP")
+          .build());
+    }
+
+    return ports;
   }
 
   private List<ServicePort> toServicePort(InstanceNetworkPolicy networkPolicy) {

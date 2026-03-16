@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hcp-b8d926bb-svc
+  namespace: hcp-b8d926bb
+spec:
+  type: LoadBalancer
+  selector:
+    app: hcp-b8d926bb-app
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+      protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
