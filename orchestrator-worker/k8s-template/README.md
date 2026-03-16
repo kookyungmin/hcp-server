@@ -21,6 +21,12 @@ CNI 적용 (calico) - Minikube 에서는 안해도 됨
 kubectl apply -f calico.yaml
 ```
 
+22번 포트 기본 허용 제외
+
+```
+kubectl apply -f felixconfiguration.yaml
+```
+
 ubuntu 이미지 load
 
 ```

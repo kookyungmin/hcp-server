@@ -1,0 +1,28 @@
+apiVersion: crd.projectcalico.org/v1
+kind: FelixConfiguration
+metadata:
+  name: default
+spec:
+  bpfConnectTimeLoadBalancing: TCP
+  bpfHostNetworkedNATWithoutCTLB: Enabled
+  bpfLogLevel: ""
+  floatingIPs: Disabled
+  logSeverityScreen: Info
+  reportingInterval: 0s
+  failsafeInboundHostPorts:
+    - protocol: UDP
+      port: 68
+    - protocol: TCP
+      port: 179
+    - protocol: TCP
+      port: 2379
+    - protocol: TCP
+      port: 2380
+    - protocol: TCP
+      port: 5473
+    - protocol: TCP
+      port: 6443
+    - protocol: TCP
+      port: 6666
+    - protocol: TCP
+      port: 6667
