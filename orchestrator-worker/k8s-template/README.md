@@ -11,6 +11,7 @@ minikube start \
   --memory=8192 \
   --cni=calico
 minikube addons enable gvisor
+minikube tunnel
 ```
 
 CNI 적용 (calico) - Minikube 에서는 안해도 됨

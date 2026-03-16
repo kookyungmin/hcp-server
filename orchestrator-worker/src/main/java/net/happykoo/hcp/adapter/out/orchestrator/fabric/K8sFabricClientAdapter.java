@@ -13,18 +13,31 @@ import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
+import io.fabric8.kubernetes.api.model.networking.v1.IPBlockBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyEgressRule;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyEgressRuleBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyIngressRule;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyIngressRuleBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPeerBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPort;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyPortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
@@ -32,6 +45,8 @@ import net.happykoo.hcp.application.port.out.data.PodData;
 import net.happykoo.hcp.common.annotation.OrchestratorAdapter;
 import net.happykoo.hcp.common.web.exception.ResourceNotFoundException;
 import net.happykoo.hcp.domain.instance.Instance;
+import net.happykoo.hcp.domain.instance.InstanceNetworkPolicy;
+import net.happykoo.hcp.domain.instance.NetworkPolicyType;
 import net.happykoo.hcp.infrastructure.properties.K8sProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -50,7 +65,10 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     PersistentVolumeClaim pvc = buildPersistentVolumeClaim(instance);
     Deployment deployment = buildDeployment(instance);
     Service service = buildService(instance);
-    NetworkPolicy networkPolicy = buildNetworkPolicy(instance);
+    NetworkPolicy networkPolicy = buildNetworkPolicy(
+        instance.getInstanceId(),
+        List.of(),
+        List.of());
 
     k8sClient.resource(namespace)
         .serverSideApply();
@@ -140,9 +158,164 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     executeRestartInstanceCommand(instance.getInstanceId());
   }
 
+  @Override
+  public void executeUpdateNetworkPolicyCommand(
+      UUID instanceId,
+      List<InstanceNetworkPolicy> networkPolicies
+  ) {
+    updateNetworkPolicy(instanceId, networkPolicies);
+    patchServiceForNetworkPolicy(instanceId, networkPolicies);
+  }
+
+  private void patchServiceForNetworkPolicy(
+      UUID instanceId,
+      List<InstanceNetworkPolicy> networkPolicies
+  ) {
+    var instanceIdString = instanceId.toString();
+    var namespace = generateNamespaceName(instanceIdString);
+    var serviceName = generateServiceName(instanceIdString);
+    var ports = buildServicePorts(networkPolicies);
+
+    var portsJson = ports.stream()
+        .map(p -> """
+            {
+              "name": "%s",
+              "port": %d,
+              "targetPort": %s,
+              "protocol": "%s"
+            }
+            """.formatted(
+            p.getName(),
+            p.getPort(),
+            p.getTargetPort().getIntVal(),
+            p.getProtocol()
+        ))
+        .collect(Collectors.joining(","));
+
+    var patched = """
+        {
+          "spec": {
+            "ports": [%s]
+          }
+        }
+        """.formatted(portsJson);
+
+    k8sClient.services()
+        .inNamespace(namespace)
+        .withName(serviceName)
+        .patch(patched);
+  }
+
+  private void updateNetworkPolicy(
+      UUID instanceId,
+      List<InstanceNetworkPolicy> networkPolicies
+  ) {
+    var instanceIdString = instanceId.toString();
+    var ingressRules = networkPolicies.stream()
+        .filter(p -> p.getType() == NetworkPolicyType.INGRESS)
+        .map(this::generateNetworkPolicyIngressRule)
+        .toList();
+
+    var egressRules = networkPolicies.stream()
+        .filter(p -> p.getType() == NetworkPolicyType.EGRESS)
+        .map(this::generateNetworkPolicyEgressRule)
+        .toList();
+
+    var newNetworkPolicy = buildNetworkPolicy(
+        instanceId,
+        ingressRules,
+        egressRules
+    );
+
+    //기존 network policy 삭제 후 저장
+    k8sClient.network().v1()
+        .networkPolicies()
+        .inNamespace(generateNamespaceName(instanceIdString))
+        .withName(generateNetworkPolicyName(instanceIdString))
+        .delete();
+    k8sClient.resource(newNetworkPolicy)
+        .inNamespace(generateNamespaceName(instanceIdString))
+        .serverSideApply();
+  }
+
+  private NetworkPolicyEgressRule generateNetworkPolicyEgressRule(
+      InstanceNetworkPolicy instanceNetworkPolicy
+  ) {
+    var peer = new NetworkPolicyPeerBuilder()
+        .withIpBlock(new IPBlockBuilder()
+            .withCidr(instanceNetworkPolicy.getIpCidr())
+            .build())
+        .build();
+
+    var ports = parseNetworkPolicyPort(instanceNetworkPolicy.getPort());
+
+    var builder = new NetworkPolicyEgressRuleBuilder()
+        .withTo(peer);
+
+    if (!ports.isEmpty()) {
+      builder.withPorts(ports);
+    }
+
+    return builder.build();
+  }
+
+  private NetworkPolicyIngressRule generateNetworkPolicyIngressRule(
+      InstanceNetworkPolicy instanceNetworkPolicy
+  ) {
+    var peer = new NetworkPolicyPeerBuilder()
+        .withIpBlock(new IPBlockBuilder()
+            .withCidr(instanceNetworkPolicy.getIpCidr())
+            .build())
+        .build();
+
+    var ports = parseNetworkPolicyPort(instanceNetworkPolicy.getPort());
+
+    var builder = new NetworkPolicyIngressRuleBuilder()
+        .withFrom(peer);
+
+    if (!ports.isEmpty()) {
+      builder.withPorts(ports);
+    }
+
+    return builder.build();
+  }
+
+  private List<NetworkPolicyPort> parseNetworkPolicyPort(String portSpec) {
+    if (StringUtils.isBlank(portSpec)) {
+      return Collections.emptyList();
+    }
+    var trimmed = portSpec.trim();
+
+    if (trimmed.contains("-")) {
+      String[] parts = trimmed.split("-", 2);
+      int start = Integer.parseInt(parts[0].trim());
+      int end = Integer.parseInt(parts[1].trim());
+
+      validatePortRange(start, end);
+
+      return List.of(
+          new NetworkPolicyPortBuilder()
+              .withProtocol("TCP")
+              .withPort(new IntOrString(start))
+              .withEndPort(end)
+              .build()
+      );
+    }
+
+    var port = Integer.parseInt(trimmed);
+    validatePort(port);
+
+    return List.of(
+        new NetworkPolicyPortBuilder()
+            .withProtocol("TCP")
+            .withPort(new IntOrString(port))
+            .build()
+    );
+  }
+
   private void executeScaleUpOrDownDeployment(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
-    String patch = String.format("""
+    var instanceId = instance.getInstanceId().toString();
+    var patch = String.format("""
             {
               "spec": {
                 "template": {
@@ -188,8 +361,8 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private void executeScaleUpStorage(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
-    String patch = String.format("""
+    var instanceId = instance.getInstanceId().toString();
+    var patch = String.format("""
             {
               "spec": {
                 "resources": {
@@ -311,16 +484,28 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     if (podReady && pvcBound && serviceReady && deploymentReplicas > 0) {
       return InstanceStatusData.success(
           instanceId,
-          getPublicIp(pod, service),
-          getPrivateIp(service)
+          getPublicIp(pod),
+          getPrivateIp(service),
+          getServicePortMessage(service)
       );
     }
 
     return InstanceStatusData.processing(instanceId);
   }
 
-  private String getPublicIp(Pod pod, Service service) {
-    String nodeIp = Optional.ofNullable(pod.getSpec().getNodeName())
+  private String getServicePortMessage(Service service) {
+    return Optional.ofNullable(service.getSpec())
+        .map(ServiceSpec::getPorts)
+        .map(ports -> ports.stream()
+            .map(port -> String.format("%s:%s►%s", port.getName(),
+                port.getPort(),
+                port.getNodePort()))
+            .collect(Collectors.joining(" ")))
+        .orElse(null);
+  }
+
+  private String getPublicIp(Pod pod) {
+    return Optional.ofNullable(pod.getSpec().getNodeName())
         .map(nodeName -> k8sClient.nodes().withName(nodeName).get())
         .map(Node::getStatus)
         .flatMap(status -> status.getAddresses()
@@ -329,13 +514,6 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
             .map(NodeAddress::getAddress)
             .findFirst())
         .orElse(null);
-
-    Integer nodePort = service.getSpec()
-        .getPorts()
-        .getFirst()
-        .getNodePort();
-
-    return nodeIp + ":" + nodePort;
   }
 
   private String getPrivateIp(Service service) {
@@ -345,7 +523,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private Namespace buildNamespace(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
+    var instanceId = instance.getInstanceId().toString();
     return new NamespaceBuilder()
         .withNewMetadata()
         .withName(generateNamespaceName(instanceId))
@@ -356,7 +534,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private Deployment buildDeployment(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
+    var instanceId = instance.getInstanceId().toString();
     return new DeploymentBuilder()
         .withNewMetadata()
         .withName(generateAppName(instanceId))
@@ -417,7 +595,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private PersistentVolumeClaim buildPersistentVolumeClaim(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
+    var instanceId = instance.getInstanceId().toString();
     return new PersistentVolumeClaimBuilder()
         .withNewMetadata()
         .withName(generatePersistentVolumeClaimName(instanceId))
@@ -437,7 +615,7 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
   }
 
   private Service buildService(Instance instance) {
-    String instanceId = instance.getInstanceId().toString();
+    var instanceId = instance.getInstanceId().toString();
     return new ServiceBuilder()
         .withNewMetadata()
         .withName(generateServiceName(instanceId))
@@ -449,35 +627,39 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
         .withType(k8sProperties.getServiceType())
         .withSelector(
             Map.of(k8sProperties.getAppKey(), generateAppName(instanceId)))
-        .addNewPort()
-        .withName("ssh")
-        .withPort(22)
-        .withTargetPort(new IntOrString(22))
-        .withProtocol("TCP")
-        .endPort()
         .endSpec()
         .build();
   }
 
-  private NetworkPolicy buildNetworkPolicy(Instance instance) {
-    //TODO: default network policy 에 따라 분기
-    String instanceId = instance.getInstanceId().toString();
-    return new NetworkPolicyBuilder()
+  private NetworkPolicy buildNetworkPolicy(
+      UUID instanceId,
+      List<NetworkPolicyIngressRule> ingressRules,
+      List<NetworkPolicyEgressRule> egressRules
+  ) {
+    var instanceIdString = instanceId.toString();
+    var builder = new NetworkPolicyBuilder()
         .withApiVersion("networking.k8s.io/v1")
         .withKind("NetworkPolicy")
         .withNewMetadata()
-        .withName(generateDefaultNetworkPolicyName(instanceId))
-        .withNamespace(generateNamespaceName(instanceId))
+        .withName(generateNetworkPolicyName(instanceIdString))
+        .withNamespace(generateNamespaceName(instanceIdString))
         .endMetadata()
         .withNewSpec()
         .withPodSelector(new LabelSelectorBuilder()
             .addToMatchLabels(k8sProperties.getAppKey(),
-                generateAppName(instanceId))
+                generateAppName(instanceIdString))
             .build())
-        .withPolicyTypes("Ingress")
-        .withIngress(List.of())
-        .endSpec()
-        .build();
+        .withPolicyTypes(resolvePolicyTypes(ingressRules, egressRules))
+        .withIngress(ingressRules)
+        .endSpec();
+
+    if (!egressRules.isEmpty()) {
+      builder.editSpec()
+          .withEgress(egressRules)
+          .endSpec();
+    }
+
+    return builder.build();
   }
 
   private String generateNamespaceName(String instanceId) {
@@ -496,8 +678,8 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
     return generateName(instanceId, k8sProperties.getPvcKey());
   }
 
-  private String generateDefaultNetworkPolicyName(String instanceId) {
-    return generateName(instanceId, "default-np");
+  private String generateNetworkPolicyName(String instanceId) {
+    return generateName(instanceId, k8sProperties.getNetworkPolicyKey());
   }
 
   private String generateName(String instanceId, String suffix) {
@@ -514,5 +696,76 @@ public class K8sFabricClientAdapter implements ExecuteOrchestratorCommandPort {
 
   private String generateStorageSize(int storageSize) {
     return storageSize + k8sProperties.getPvcStorageUnit();
+  }
+
+  private List<String> resolvePolicyTypes(
+      List<NetworkPolicyIngressRule> ingressRules,
+      List<NetworkPolicyEgressRule> egressRules
+  ) {
+    List<String> types = new ArrayList<>();
+    types.add("Ingress");
+    if (!egressRules.isEmpty()) {
+      types.add("Egress");
+    }
+    return types;
+  }
+
+  private List<ServicePort> buildServicePorts(List<InstanceNetworkPolicy> networkPolicies) {
+    return networkPolicies.stream()
+        .filter(np -> np.getType() == NetworkPolicyType.INGRESS)
+        .flatMap(np -> toServicePort(np).stream())
+        .toList();
+  }
+
+  private List<ServicePort> toServicePort(InstanceNetworkPolicy networkPolicy) {
+    var portSpec = networkPolicy.getPort();
+    if (StringUtils.isBlank(portSpec)) {
+      return Collections.emptyList();
+    }
+
+    List<ServicePort> ports = new ArrayList<>();
+
+    if (portSpec.contains("-")) {
+      String[] parts = portSpec.split("-", 2);
+      int start = Integer.parseInt(parts[0].trim());
+      int end = Integer.parseInt(parts[1].trim());
+
+      validatePortRange(start, end);
+
+      for (int p = start; p <= end; p++) {
+        ports.add(new ServicePortBuilder()
+            .withName(networkPolicy.getPolicyName() + "-" + p)
+            .withPort(p)
+            .withTargetPort(new IntOrString(p))
+            .withProtocol("TCP")
+            .build());
+      }
+
+      return ports;
+    }
+
+    int port = Integer.parseInt(portSpec);
+    validatePort(port);
+
+    ports.add(new ServicePortBuilder()
+        .withName(networkPolicy.getPolicyName())
+        .withPort(port)
+        .withTargetPort(new IntOrString(port))
+        .withProtocol("TCP")
+        .build());
+
+    return ports;
+  }
+
+  private void validatePortRange(int start, int end) {
+    if (start < 1 || end > 65535 || end < start) {
+      throw new IllegalArgumentException("Invalid NetworkPolicy port range");
+    }
+  }
+
+  private void validatePort(int port) {
+    if (port < 1 || port > 65535) {
+      throw new IllegalArgumentException("Invalid NetworkPolicy port");
+    }
   }
 }

@@ -3,18 +3,22 @@ package net.happykoo.hcp.adapter.in.event;
 import com.google.gson.Gson;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.happykoo.hcp.adapter.in.event.payload.InstanceNetworkPolicyEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceProvisioningEvent;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceRegisterSshKeyEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceScalingEventPayload;
 import net.happykoo.hcp.adapter.in.event.payload.InstanceUpdateLifecycleEventPayload;
+import net.happykoo.hcp.adapter.in.event.payload.InstanceUpdateNetworkPolicyEventPayload;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.RegisterInstanceSshKeyUseCase;
 import net.happykoo.hcp.application.port.in.ScaleInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
+import net.happykoo.hcp.application.port.in.UpdateNetworkPolicyUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.RegisterInstanceSshKeyCommand;
 import net.happykoo.hcp.application.port.in.command.ScaleInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateNetworkPolicyCommand;
 import net.happykoo.hcp.common.annotation.EventInAdapter;
 import net.happykoo.hcp.infrastructure.kafka.topic.KafkaTopics;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +34,7 @@ public class InstanceEventConsumer {
   private final UpdateInstanceLifecycleUseCase updateInstanceLifecycleUseCase;
   private final ScaleInstanceUseCase scaleInstanceUseCase;
   private final RegisterInstanceSshKeyUseCase registerInstanceSshKeyUseCase;
+  private final UpdateNetworkPolicyUseCase updateNetworkPolicyUseCase;
 
   @KafkaListener(topics = KafkaTopics.INSTANCE_PROVISIONING_TOPIC)
   public void onInstanceProvisioning(
@@ -125,6 +130,30 @@ public class InstanceEventConsumer {
             event.sshKey()
         )
     );
+    ack.acknowledge();
+  }
+
+  @KafkaListener(topics = KafkaTopics.INSTANCE_UPDATE_NETWORK_POLICY_TOPIC)
+  public void onUpdateNetworkPolicy(
+      ConsumerRecord<String, String> record,
+      Acknowledgment ack
+  ) {
+    if (StringUtils.isBlank(record.key())) {
+      ack.acknowledge();
+      return;
+    }
+    var event = new Gson().fromJson(record.value(), InstanceUpdateNetworkPolicyEventPayload.class);
+    var networkPolices = event.networkPolicies()
+        .stream()
+        .map(InstanceNetworkPolicyEventPayload::toDomain)
+        .toList();
+
+    updateNetworkPolicyUseCase.updateNetworkPolicy(new UpdateNetworkPolicyCommand(
+        UUID.fromString(record.key()),
+        UUID.fromString(event.instanceId()),
+        networkPolices
+    ));
+
     ack.acknowledge();
   }
 }

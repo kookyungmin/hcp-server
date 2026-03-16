@@ -67,8 +67,8 @@ public class JpaInstanceEntity extends JpaTimeBaseEntity {
   @Column(name = "status")
   private InstanceStatus status;
 
-  @Column(name = "failure_reason")
-  private String failureReason;
+  @Column(name = "message")
+  private String message;
 
   @Column(name = "public_ip")
   private String publicIp;
@@ -88,7 +88,7 @@ public class JpaInstanceEntity extends JpaTimeBaseEntity {
         instanceInfo.getStorage().getStorageType(),
         instanceInfo.getStorage().getStorageSize(),
         instanceInfo.getStatus(),
-        instanceInfo.getFailureReason(),
+        instanceInfo.getMessage(),
         instanceInfo.getPublicIp(),
         instanceInfo.getPrivateIp()
     );
@@ -115,7 +115,7 @@ public class JpaInstanceEntity extends JpaTimeBaseEntity {
             .orElse(null),
         new InstanceStorage(storageType, storageSize),
         status,
-        failureReason,
+        message,
         publicIp,
         privateIp
     );

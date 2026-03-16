@@ -9,10 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.in.ProvisionInstanceUseCase;
 import net.happykoo.hcp.application.port.in.ScaleInstanceUseCase;
 import net.happykoo.hcp.application.port.in.UpdateInstanceLifecycleUseCase;
+import net.happykoo.hcp.application.port.in.UpdateNetworkPolicyUseCase;
 import net.happykoo.hcp.application.port.in.WatchInstanceStatusUseCase;
 import net.happykoo.hcp.application.port.in.command.ProvisionInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.ScaleInstanceCommand;
 import net.happykoo.hcp.application.port.in.command.UpdateInstanceLifecycleCommand;
+import net.happykoo.hcp.application.port.in.command.UpdateNetworkPolicyCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.PublishInstanceStatusEventPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
@@ -32,7 +34,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @RequiredArgsConstructor
 @EnableConfigurationProperties(IdempotencyProperties.class)
 public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceStatusUseCase,
-    UpdateInstanceLifecycleUseCase, ScaleInstanceUseCase {
+    UpdateInstanceLifecycleUseCase, ScaleInstanceUseCase, UpdateNetworkPolicyUseCase {
 
   private final ExecuteOrchestratorCommandPort executeOrchestratorCommandPort;
   private final SaveIdempotencyPort saveIdempotencyPort;
@@ -103,6 +105,14 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
               command.storageSize()
           )
       );
+    });
+  }
+
+  @Override
+  public void updateNetworkPolicy(UpdateNetworkPolicyCommand command) {
+    tryOrchestratorCommand(command.eventId(), () -> {
+      executeOrchestratorCommandPort.executeUpdateNetworkPolicyCommand(command.instanceId(),
+          command.networkPolicies());
     });
   }
 

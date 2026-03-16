@@ -10,12 +10,13 @@ create table hcp_compute.h_instance(
     spec varchar(16) not null,
     storage_type varchar(5) not null,
     storage_size integer not null,
-    failure_reason varchar(512),
+    message text,
     public_ip varchar(32),
     private_ip varchar(32),
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
+
 
 create table hcp_compute.h_instance_ssh_key(
     instance_id binary(16) not null,
@@ -98,7 +99,7 @@ create table hcp_compute.h_idempotency_request(
 
 create table hcp_compute.h_outbox_event(
     event_id binary(16) not null,
-    event_type varchar(32) not null,
+    event_type varchar(64) not null,
     payload varchar(1024) not null,
     status varchar(16) not null,
     retry_count smallint not null default 0,
@@ -108,6 +109,17 @@ create table hcp_compute.h_outbox_event(
     primary key(event_id)
 );
 
+alter table hcp_compute.h_outbox_event modify column event_type varchar(64);
 
 
+create table hcp_compute.h_network_policy(
+    id int auto_increment primary key,
+    instance_id binary(16) not null,
+    policy_name varchar(128) not null,
+    type varchar(10),
+    cidr_block varchar(16) not null,
+    port varchar(20) not null,
+    created_at timestamp not null default now(),
+    updated_at timestamp not null default now()
+);
 

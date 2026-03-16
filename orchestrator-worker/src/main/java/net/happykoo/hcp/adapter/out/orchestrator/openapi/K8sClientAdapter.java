@@ -93,17 +93,20 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
   @Override
   public void registerSshKey(String namespace, String podName, String sshKey) {
     try {
-      Exec exec = new Exec(apiClient);
+      var exec = new Exec(apiClient);
 
-      String command =
-          "mkdir -p ~/.ssh && " +
-              "rm -f ~/.ssh/authorized_keys &&" +
-              "touch ~/.ssh/authorized_keys && " +
-              "grep -qxF '" + sshKey + "' ~/.ssh/authorized_keys || " +
-              "echo '" + sshKey + "' >> ~/.ssh/authorized_keys && " +
-              "chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys";
+      var homePath = "/home/" + k8sProperties.getUserName();
+      var command =
+          "mkdir -p " + homePath + "/.ssh && " +
+              "rm -f " + homePath + "/.ssh/authorized_keys &&" +
+              "touch " + homePath + "/.ssh/authorized_keys && " +
+              "grep -qxF '" + sshKey + "' " + homePath + "/.ssh/authorized_keys || " +
+              "echo '" + sshKey + "' >> " + homePath + "/.ssh/authorized_keys && " +
+              "chmod 700 " + homePath + "/.ssh && chmod 600 " + homePath + "/.ssh/authorized_keys" +
+              " && chown -R " + k8sProperties.getUserName() + ":" + k8sProperties.getUserName()
+              + " " + homePath;
 
-      Process proc = exec.exec(
+      var proc = exec.exec(
           namespace,
           podName,
           new String[]{"/bin/sh", "-c", command},
@@ -122,7 +125,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
 
   @Override
   public void close(String sessionId) {
-    K8sTerminalSession session = terminalSessionRegistry.remove(sessionId);
+    var session = terminalSessionRegistry.remove(sessionId);
     if (session != null) {
       session.close();
     }

@@ -12,12 +12,13 @@ public record InstanceStatusData(
   public static InstanceStatusData success(
       String instanceId,
       String publicIp,
-      String privateIp
+      String privateIp,
+      String message
   ) {
     return new InstanceStatusData(
         instanceId,
         InstanceStatus.SUCCESS,
-        null,
+        message,
         publicIp,
         privateIp
     );

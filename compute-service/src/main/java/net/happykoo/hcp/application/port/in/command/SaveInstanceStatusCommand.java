@@ -6,7 +6,7 @@ import net.happykoo.hcp.domain.instance.InstanceStatus;
 public record SaveInstanceStatusCommand(
     UUID instanceId,
     InstanceStatus status,
-    String failureReason,
+    String message,
     String publicIp,
     String privateIp
 ) {

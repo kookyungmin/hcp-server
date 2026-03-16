@@ -65,7 +65,7 @@ public class InstancePersistenceAdapter implements SaveInstanceInfoPort, GetInst
         .orElseThrow(() -> new ResourceNotFoundException("존재하지 않는 인스턴스입니다."));
 
     entity.setStatus(updateInstanceStatusData.status());
-    entity.setFailureReason(updateInstanceStatusData.failureReason());
+    entity.setMessage(updateInstanceStatusData.failureReason());
     entity.setPublicIp(updateInstanceStatusData.publicIp());
     entity.setPrivateIp(updateInstanceStatusData.privateIp());
   }

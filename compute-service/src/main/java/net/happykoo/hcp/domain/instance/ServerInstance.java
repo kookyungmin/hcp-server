@@ -21,7 +21,7 @@ public class ServerInstance {
   private InstanceSpec spec;
   private InstanceStorage storage;
   private InstanceStatus status;
-  private String failureReason;
+  private String message;
   private String publicIp;
   private String privateIp;
 

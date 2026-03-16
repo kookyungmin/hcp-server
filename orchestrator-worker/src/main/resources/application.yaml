@@ -59,6 +59,7 @@ k8s:
   pvc-storage-unit: Gi
   service-key: svc
   service-type: NodePort
+  network-policy-key: netpol
   container-image-pull-policy: IfNotPresent
   instance-label: hcp.instanceId
   owner-label: hcp.owner

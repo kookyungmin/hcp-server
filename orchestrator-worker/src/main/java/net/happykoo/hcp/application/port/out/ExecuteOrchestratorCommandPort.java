@@ -1,9 +1,11 @@
 package net.happykoo.hcp.application.port.out;
 
+import java.util.List;
 import java.util.UUID;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
 import net.happykoo.hcp.application.port.out.data.PodData;
 import net.happykoo.hcp.domain.instance.Instance;
+import net.happykoo.hcp.domain.instance.InstanceNetworkPolicy;
 
 public interface ExecuteOrchestratorCommandPort {
 
@@ -20,4 +22,7 @@ public interface ExecuteOrchestratorCommandPort {
   void executeTerminateInstanceCommand(UUID instanceId);
 
   void executeScaleInstanceCommand(Instance instance);
+
+  void executeUpdateNetworkPolicyCommand(UUID instanceId,
+      List<InstanceNetworkPolicy> networkPolicies);
 }

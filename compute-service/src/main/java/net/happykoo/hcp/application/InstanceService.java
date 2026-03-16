@@ -222,6 +222,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
             throw new IllegalStateException("인스턴스 접근 권한이 없습니다.");
           }
 
+          saveNetworkPolicyPort.removeAllNetworkPolicyByInstanceId(command.instanceId());
           saveNetworkPolicyPort.saveAllNetworkPolicy(command.networkPolicies());
 
           return command.networkPolicies();
@@ -246,7 +247,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
     saveInstanceInfoPort.updateInstanceStatus(new UpdateInstanceStatusData(
         command.instanceId(),
         command.status(),
-        command.failureReason(),
+        command.message(),
         command.publicIp(),
         command.privateIp()
     ));
@@ -415,6 +416,7 @@ public class InstanceService implements ProvisionInstanceUseCase,
     var networkPolicyEvents = networkPolicies.stream()
         .map(networkPolicy -> new InstanceNetworkPolicyEventPayload(
             instanceIdStr,
+            networkPolicy.getPolicyName(),
             networkPolicy.getType().name(),
             networkPolicy.getPort(),
             networkPolicy.getIpCidr()

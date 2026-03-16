@@ -18,7 +18,8 @@ public record GetInstanceListResponse(
     int storageSize,
     InstanceStatus status,
     String publicIp,
-    String privateIp
+    String privateIp,
+    String message
 ) {
 
   public static GetInstanceListResponse from(ServerInstance instance) {
@@ -35,7 +36,8 @@ public record GetInstanceListResponse(
         instance.getStorageSize(),
         instance.getStatus(),
         instance.getPublicIp(),
-        instance.getPrivateIp()
+        instance.getPrivateIp(),
+        instance.getMessage()
     );
   }
 }

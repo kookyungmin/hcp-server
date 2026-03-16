@@ -12,6 +12,7 @@ public class K8sProperties {
   private String prefix;
   private String appKey;
   private String pvcKey;
+  private String networkPolicyKey;
   private String serviceKey;
   private String serviceType;
   private String pvcAccessMode;
