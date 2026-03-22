@@ -102,6 +102,8 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 * 아키텍처
 
+![img_23.png](img_23.png)
+
 
 ✔ 보안 그룹 관리
 
@@ -132,6 +134,8 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 ✔ 웹 콘솔 연결
 
 * 아키텍처
+
+![img_24.png](img_24.png)
 
 * 관련 UI
 
