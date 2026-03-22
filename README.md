@@ -66,14 +66,14 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 * 아키텍처
 
-* 관련 UI
-
-![img_6.png](img_6.png)
+![img_17.png](img_17.png)
 
 
 ✔  인스턴스 중지
 
 * 아키텍처
+
+![img_18.png](img_18.png)
 
 * 관련 UI
 
@@ -83,34 +83,49 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 * 아키텍처
 
+![img_19.png](img_19.png)
+
 
 ✔  인스턴스 삭제
 
 * 아키텍처
 
+![img_20.png](img_20.png)
+
+* 관련 UI
+
+![img_6.png](img_6.png)
+
+
 ✔ Scale up / down
 
 * 아키텍처
+
+
+✔ 보안 그룹 관리
+
+* 아키텍처
+
+![img_21.png](img_21.png)
+
+
+* 관련 UI
+
+![img_11.png](img_11.png)
+
+
 
 ✔ SSH key 등록 / SSH 접근
 
 * 아키텍처
 
+![img_22.png](img_22.png)
 
 * 관련 UI
 
 ![img_10.png](img_10.png)
 
 ![img_9.png](img_9.png)
-
-✔ 보안 그룹 관리
-
-* 아키텍처
-
-
-* 관련 UI
-
-![img_11.png](img_11.png)
 
 
 ✔ 웹 콘솔 연결
