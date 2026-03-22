@@ -9,17 +9,21 @@
 ![k8s](https://shields.io/badge/k8s-black?logo=kubernetes&style=for-the-badge%22)
 ![grafana](https://shields.io/badge/grafana-black?logo=grafana&style=for-the-badge%22)
 ![prometheus](https://shields.io/badge/prometheus-black?logo=prometheus&style=for-the-badge%22)
+![Elasticsearch](https://shields.io/badge/elasticsearch-black?logo=elasticsearch&style=for-the-badge%22)
+![Jaeger](https://shields.io/badge/jaeger-black?logo=jaeger&style=for-the-badge%22)
 
-## 해피 클라우드 플랫폼 서버
+## 해피 클라우드 플랫폼 
+
+Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
+
+헥사고날 아키텍처 기반으로 Kubernetes 를 활용하여 Compute 및 Network 개념을 추상화하고 , 클라우드 서비스 동작 구조를 구현함
 
 실제로는 Compute Server는 VM 으로 할당하고, Network 는 L2,L3 단에서 처리해야 하지만, 
 
 본 프로젝트에서는 k8s 를 활용하여 최대한 클라우드 서비스를 흉내내는 것을 목표
 
+
 ![img.png](image/img.png)
-![img.png](image/img1_2.png)
-![img.png](image/img1.png)
-![img_1.png](image/img1_1.png)
 
 ### System Requirements
 
@@ -32,26 +36,203 @@
 - [kafka] 4.1.1
 
 
-### Use case (MVP)
+### Architecture
 
-- [x] 인증 / 인가
-- [x] Compute Server Resource (Ubuntu, Rocky) 관리
-- [ ] 사용량(Resource 시간 당 사용량, Traffic 용량) 및 과금 관리
-- [ ] 사용자 요금 정산 / 결제
-- [ ] 방화벽(보안 그룹) 관리
-- [ ] IAM (서브 계정, 권한(RBAC)) 관리
-- [ ] Scale Up / Down
-- [ ] Observability
+![img.png](img.png)
 
-### Use case (Advance)
-- [ ] Region 관리
-- [ ] 회원 관리 (회원 정보 관리, 회원가입, 아이디/비밀번호 찾기, 비밀번호 변경)
-- [ ] VPC 관리
-- [ ] VM 할당으로 변경 (Windows Image 등 제공)
-- [ ] Serverless Functions (Runtime Runner, API Generator)
-- [ ] Object Storage
-- [ ] 관리자 사이트 (사용자 통계, 사용량 / 과금 통계, 시스템 관리)
-- [ ] (DB, Redis) Cluster / Master, Slaves / Backup
-- [ ] AutoScale
-- [ ] OAuth2.0 연동
 
+### 핵심 기능
+
+✔ 로그인 인증 / 인가
+
+* 아키텍처
+
+![img_4.png](img_4.png)
+
+* 관련 UI
+
+![img_5.png](img_5.png)
+
+✔ 인스턴스 라이프 사이클
+
+* 아키텍처
+
+
+* 관련 UI
+
+![img_6.png](img_6.png)
+![img_7.png](img_7.png)
+
+* 인스턴스 생성
+* 인스턴스 중지
+* 인스턴스 재시작
+* 인스턴스 삭제
+
+✔ 웹 콘솔 연결
+
+* 아키텍처
+
+* 관련 UI
+
+![img_12.png](img_12.png)
+
+✔ Scale up / down
+
+* 아키텍처
+
+✔ SSH key 등록 / SSH 접근
+
+* 아키텍처
+
+
+* 관련 UI
+
+![img_10.png](img_10.png)
+
+![img_9.png](img_9.png)
+
+✔ 보안 그룹 관리
+
+* 아키텍처
+
+
+* 관련 UI
+
+![img_11.png](img_11.png) 
+
+### Local Environment
+
+* 관련 도구 실행
+
+```
+$ docker compose up -d
+```
+
+* env 설정
+
+```
+# env.template 작성 후
+$ cp env.template .env.local
+```
+
+* kafka topic 생성
+
+```
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.provisioning \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.provisioning.DLT \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.status \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.update.lifecycle \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.scaling \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.register.sshkey \
+  --partitions 3 \
+  --replication-factor 1;
+  
+/opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server kafka:9092 \
+  --create \
+  --if-not-exists \
+  --topic hcp.compute.instance.update.networkpolicy \
+  --partitions 3 \
+  --replication-factor 1;
+  
+```
+
+* DB SQL 초기화
+
+```
+각 서비스 sql/init.sql 실행
+```
+
+* k8s 셋팅
+
+minikube 실행 (Mac 에서만)
+
+```
+minikube start \
+  --container-runtime=containerd \
+  --cpus=4 \
+  --memory=8192 \
+  --cni=calico
+minikube addons enable gvisor
+minikube addons enable metallb
+minikube tunnel
+```
+
+CNI 적용 (calico) - Minikube 에서는 안해도 됨
+
+```
+kubectl apply -f calico.yaml
+```
+
+22번 포트 기본 허용 제외
+
+```
+kubectl apply -f felixconfiguration.yaml
+```
+
+ubuntu 이미지 load
+
+```
+docker build -t hcp_ubuntu:v1.0.0 . -f hcp_ubuntu.Dockerfile
+minikube image load hcp_ubuntu:v1.0.0
+```
+
+rocky 이미지 load
+
+```
+docker build -t hcp_rocky:v1.0.0 . -f hcp_rocky.Dockerfile
+minikube image load hcp_rocky:v1.0.0
+```
+
+StorageClass
+
+```
+kubectl apply -f loopfs.yaml
+kubectl apply -f compute-server-v1.yaml
+```
+
+* 각 서비스 실행
+
+```
+# 예시
+$ java -jar user-service.jar --spring.profiles.active=local
+```
