@@ -68,6 +68,10 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 ![img_17.png](img_17.png)
 
+* 관련 UI
+
+![img_6.png](img_6.png)
+
 
 ✔  인스턴스 중지
 
@@ -75,9 +79,6 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 ![img_18.png](img_18.png)
 
-* 관련 UI
-
-![img_7.png](img_7.png)
 
 ✔  인스턴스 재시작
 
@@ -94,7 +95,7 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 * 관련 UI
 
-![img_6.png](img_6.png)
+![img_7.png](img_7.png)
 
 
 ✔ Scale up / down
