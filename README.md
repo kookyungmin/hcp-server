@@ -23,7 +23,7 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 본 프로젝트에서는 k8s 를 활용하여 최대한 클라우드 서비스를 흉내내는 것을 목표
 
 
-![img.png](image/img.png)
+![img.png](image/img444.png)
 
 ### System Requirements
 
@@ -53,28 +53,40 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 ![img_5.png](img_5.png)
 
-✔ 인스턴스 라이프 사이클
+✔ 인스턴스 작업 및 상태 동기화 기본 메커니즘
 
 * 아키텍처
 
+![img_15.png](img_15.png)
+
+![img_16.png](img_16.png)
+
+
+✔  인스턴스 생성
+
+* 아키텍처
 
 * 관련 UI
 
 ![img_6.png](img_6.png)
-![img_7.png](img_7.png)
 
-* 인스턴스 생성
-* 인스턴스 중지
-* 인스턴스 재시작
-* 인스턴스 삭제
 
-✔ 웹 콘솔 연결
+✔  인스턴스 중지
 
 * 아키텍처
 
 * 관련 UI
 
-![img_12.png](img_12.png)
+![img_7.png](img_7.png)
+
+✔  인스턴스 재시작
+
+* 아키텍처
+
+
+✔  인스턴스 삭제
+
+* 아키텍처
 
 ✔ Scale up / down
 
@@ -98,21 +110,32 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 
 * 관련 UI
 
-![img_11.png](img_11.png) 
+![img_11.png](img_11.png)
+
+
+✔ 웹 콘솔 연결
+
+* 아키텍처
+
+* 관련 UI
+
+![img_12.png](img_12.png)
+
+
 
 ### Local Environment
-
-* 관련 도구 실행
-
-```
-$ docker compose up -d
-```
 
 * env 설정
 
 ```
 # env.template 작성 후
 $ cp env.template .env.local
+```
+
+* 관련 도구 실행
+
+```
+$ docker compose up -d
 ```
 
 * kafka topic 생성
