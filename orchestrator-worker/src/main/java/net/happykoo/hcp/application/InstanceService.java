@@ -18,6 +18,7 @@ import net.happykoo.hcp.application.port.in.command.UpdateNetworkPolicyCommand;
 import net.happykoo.hcp.application.port.out.ExecuteOrchestratorCommandPort;
 import net.happykoo.hcp.application.port.out.PublishInstanceStatusEventPort;
 import net.happykoo.hcp.application.port.out.SaveIdempotencyPort;
+import net.happykoo.hcp.application.port.out.TryLockPort;
 import net.happykoo.hcp.application.port.out.data.IdempotencyAcquireResult;
 import net.happykoo.hcp.application.port.out.data.InstanceStatusData;
 import net.happykoo.hcp.common.annotation.UseCase;
@@ -41,11 +42,13 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
   private final IdempotencyProperties idempotencyProperties;
   private final PublishInstanceStatusEventPort publishInstanceStatusEventPort;
 
+  private final TryLockPort tryLockPort;
+
   @Override
   public void provisionInstance(
       ProvisionInstanceCommand command
   ) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       //orchestrator(k8s) 명령 실행
       executeOrchestratorCommandPort.executeProvisionInstanceCommand(new Instance(
           command.instanceId(),
@@ -64,21 +67,21 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
 
   @Override
   public void stopInstance(UpdateInstanceLifecycleCommand command) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       executeOrchestratorCommandPort.executeStopInstanceCommand(command.instanceId());
     });
   }
 
   @Override
   public void restartInstance(UpdateInstanceLifecycleCommand command) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       executeOrchestratorCommandPort.executeRestartInstanceCommand(command.instanceId());
     });
   }
 
   @Override
   public void terminateInstance(UpdateInstanceLifecycleCommand command) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       executeOrchestratorCommandPort.executeTerminateInstanceCommand(command.instanceId());
     });
   }
@@ -94,7 +97,7 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
 
   @Override
   public void scaleInstance(ScaleInstanceCommand command) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       executeOrchestratorCommandPort.executeScaleInstanceCommand(
           new Instance(
               command.instanceId(),
@@ -110,7 +113,7 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
 
   @Override
   public void updateNetworkPolicy(UpdateNetworkPolicyCommand command) {
-    tryOrchestratorCommand(command.eventId(), () -> {
+    tryOrchestratorCommand(command.eventId(), command.instanceId(), () -> {
       executeOrchestratorCommandPort.executeUpdateNetworkPolicyCommand(command.instanceId(),
           command.networkPolicies());
     });
@@ -118,33 +121,38 @@ public class InstanceService implements ProvisionInstanceUseCase, WatchInstanceS
 
   private void tryOrchestratorCommand(
       UUID eventId,
+      UUID instanceId,
       Runnable execOrchestratorCommand
   ) {
-    //멱등성 선점 시도
-    var idempotency = new Idempotency(
-        eventId,
-        IdempotencyStatus.PROCESSING,
-        Instant.now().plusSeconds(idempotencyProperties.getProcessingTtlSeconds())
-    );
-    IdempotencyAcquireResult acquireResult = saveIdempotencyPort.tryAcquireIdempotency(idempotency);
-    if (acquireResult == ALREADY_DONE) {
-      //이미 완료된 작업이므로 return 해서 ack commit
-      return;
-    }
-    if (acquireResult == IdempotencyAcquireResult.BUSY) {
-      //다른 consumer 가 처리하고 있으므로 throw 해서 retry 유도
-      throw new RetryableException("이미 진행 중인 작업입니다.");
-    }
+    //분산락 처리
+    tryLockPort.tryLockInstance(instanceId, () -> {
+      //멱등성 선점 시도
+      var idempotency = new Idempotency(
+          eventId,
+          IdempotencyStatus.PROCESSING,
+          Instant.now().plusSeconds(idempotencyProperties.getProcessingTtlSeconds())
+      );
+      IdempotencyAcquireResult acquireResult = saveIdempotencyPort.tryAcquireIdempotency(
+          idempotency);
+      if (acquireResult == ALREADY_DONE) {
+        //이미 완료된 작업이므로 return 해서 ack commit
+        return;
+      }
+      if (acquireResult == IdempotencyAcquireResult.BUSY) {
+        //다른 consumer 가 처리하고 있으므로 throw 해서 retry 유도
+        throw new RetryableException("이미 진행 중인 작업입니다.");
+      }
 
-    try {
-      execOrchestratorCommand.run();
-      idempotency.success();
-    } catch (Exception e) {
-      idempotency.failed();
-      throw e;
-    } finally {
-      //멱등성 상태 (update)
-      saveIdempotencyPort.saveIdempotency(idempotency);
-    }
+      try {
+        execOrchestratorCommand.run();
+        idempotency.success();
+      } catch (Exception e) {
+        idempotency.failed();
+        throw e;
+      } finally {
+        //멱등성 상태 (update)
+        saveIdempotencyPort.saveIdempotency(idempotency);
+      }
+    });
   }
 }

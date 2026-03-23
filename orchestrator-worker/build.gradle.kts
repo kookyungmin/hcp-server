@@ -32,6 +32,7 @@ dependencies {
   implementation("org.springframework.kafka:spring-kafka")
   implementation("io.fabric8:kubernetes-client:6.9.0")
   implementation("io.kubernetes:client-java:25.0.0")
+  implementation("org.redisson:redisson-spring-boot-starter:3.23.5")
 
   //Swagger
   implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")

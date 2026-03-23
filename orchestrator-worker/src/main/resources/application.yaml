@@ -10,6 +10,10 @@ spring:
     username: ${SPRING_WK_DB_USER}
     password: ${SPRING_WK_DB_PASSWORD}
     driver-class-name: ${SPRING_WK_DB_DRIVER}
+  data:
+    redis:
+      host: ${SPRING_WK_REDIS_HOST}
+      port: ${SPRING_WK_REDIS_PORT}
   # JPA 설정
   jpa:
     hibernate:
