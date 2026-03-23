@@ -48,6 +48,10 @@ server:
   shutdown: graceful # graceful shutdown
   port: ${SPRING_CP_PORT}
 security:
+  allowed-origins:
+    - "http://www.happycloud.net:*"
+    - "http://localhost:*"
+    - "http://127.0.0.1:*"
   allowed-api-paths:
     - /actuator/health/**
     - /actuator/info/**

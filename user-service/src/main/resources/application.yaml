@@ -30,6 +30,10 @@ server:
   shutdown: graceful # graceful shutdown
   port: ${SPRING_UR_PORT}
 security:
+  allowed-origins:
+    - "http://www.happycloud.net:*"
+    - "http://localhost:*"
+    - "http://127.0.0.1:*"
   allowed-api-paths:
     - /v1/auth/login
     - /v1/auth/token/refresh

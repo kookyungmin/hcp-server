@@ -46,6 +46,10 @@ spring:
             corsConfigurations:
               '[/**]':
                 allowedOrigins:
+                allowedOriginPatterns:
+                  - "http://www.happycloud.net:*"
+                  - "http://localhost:*"
+                  - "http://127.0.0.1:*"
                 allowedMethods:
                   - GET
                   - POST
