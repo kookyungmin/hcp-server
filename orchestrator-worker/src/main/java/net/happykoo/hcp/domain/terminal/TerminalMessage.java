@@ -44,8 +44,8 @@ public record TerminalMessage(
     return new TerminalMessage(
         TerminalMessageType.ERROR,
         null,
-        errorMessage,
         null,
+        errorMessage,
         null,
         null
     );
