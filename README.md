@@ -246,6 +246,7 @@ minikube start \
   --cni=calico
 minikube addons enable gvisor
 minikube addons enable metallb
+minikube addons enable ingress
 minikube tunnel
 ```
 
