@@ -142,6 +142,15 @@ Happy Cloud Platform은 Kubernetes 기반 클라우드 구조 모사 시스템
 ![img_12.png](image/img_12.png)
 
 
+### Build
+
+```
+docker build -t hcp-user-service:v1.0.0 -f user-service/Dockerfile .
+docker build -t hcp-compute-service:v1.0.0 -f compute-service/Dockerfile .
+docker build -t hcp-orchestrator-worker:v1.0.0 -f orchestrator-worker/Dockerfile .
+docker build -t hcp-api-gateway:v1.0.0 -f hcp-api-gateway/Dockerfile .
+```
+
 
 ### Local Environment
 

@@ -49,6 +49,9 @@ server:
   port: ${SPRING_CP_PORT}
 security:
   allowed-api-paths:
+    - /actuator/health/**
+    - /actuator/info/**
+    - /actuator/healt
 outbox:
   poll-interval-ms: 2000
   batch-size: 200
@@ -56,6 +59,7 @@ outbox:
 websocket:
   orchestrator-worker:
     url: ${SPRING_WK_SERVICE_WS_URL}/ws/internal/computes
+
 
 
 

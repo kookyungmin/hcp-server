@@ -53,6 +53,9 @@ server:
   port: ${SPRING_WK_PORT}
 security:
   allowed-api-paths:
+    - /actuator/health/**
+    - /actuator/info/**
+    - /actuator/health
 idempotency:
   processing-ttl-seconds: 120
 k8s:

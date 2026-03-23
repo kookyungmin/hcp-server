@@ -34,6 +34,9 @@ security:
     - /v1/auth/login
     - /v1/auth/token/refresh
     - /v1/user-management/register
+    - /actuator/health/**
+    - /actuator/info/**
+    - /actuator/health
   jwt:
     access-token:
       secret-key: ${JWT_ACCESS_TOKEN_SECRET_KEY}
@@ -42,6 +45,15 @@ security:
     prefix: RTK
     secure: false
     expire-time: 604800 # 7일
-
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 

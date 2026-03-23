@@ -48,8 +48,6 @@ insert into hcp_user.h_permission(permission_code, description, is_default)
 values('compute:instance:write', '인스턴스 생성/수정 권한', false);
 
 
-select * from hcp_user.h_permission;
-
 # 사용자 permission 테이블
 create table hcp_user.h_user_permission(
     user_id binary(16) not null,
@@ -60,7 +58,3 @@ create table hcp_user.h_user_permission(
 );
 
 
-
-select * from hcp_user.h_user;
-select * from hcp_user.h_user_account;
-select * from hcp_user.h_user_permission;
