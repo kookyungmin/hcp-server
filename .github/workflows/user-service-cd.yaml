@@ -10,7 +10,7 @@ jobs:
   build-push-update-manifest:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/user-service
+      IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/hcp-user-service
     steps:
       - name: Checkout hcp-server
         uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
       - name: Build and push user-service image
         uses: docker/build-push-action@v6
         with:
-          context: ./user-service
+          context: ./
           file: ./user-service/Dockerfile
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
