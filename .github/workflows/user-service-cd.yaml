@@ -5,7 +5,7 @@ on:
       - main
     paths:
       - 'user-service/**'
-      - '.github/workflows/user-service-cd.yml'
+      - '.github/workflows/user-service-cd.yaml'
 jobs:
   build-push-update-manifest:
     runs-on: ubuntu-latest
