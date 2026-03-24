@@ -40,7 +40,7 @@ jobs:
         with:
           repository: kookyungmin/hcp-k8s-manifest
           token: ${{ secrets.MANIFEST_REPO_TOKEN }}
-          path: /
+          path: hcp-k8s-manifest
 
       - name: Update user-service tag in manifest
         run: |
