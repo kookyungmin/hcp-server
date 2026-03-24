@@ -44,7 +44,7 @@ jobs:
 
       - name: Update user-service tag in manifest
         run: |
-          cd overlays/dev/user-service
+          cd hcp-k8s-manifest/overlays/dev/user-service
           sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/" kustomization.yaml
 
       - name: Commit and push manifest changes
