@@ -41,6 +41,7 @@ security:
     - /actuator/health/**
     - /actuator/info/**
     - /actuator/health
+    - /actuator/prometheus
   jwt:
     access-token:
       secret-key: ${JWT_ACCESS_TOKEN_SECRET_KEY}
