@@ -25,6 +25,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
 
+  //Prometheus
+  implementation("io.micrometer:micrometer-registry-prometheus")
+
   //Lombok
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

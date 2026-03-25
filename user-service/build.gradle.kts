@@ -34,6 +34,9 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
 
+  //Prometheus
+  implementation("io.micrometer:micrometer-registry-prometheus")
+
   //MySql
   runtimeOnly("com.mysql:mysql-connector-j")
 

@@ -50,14 +50,9 @@ security:
     secure: false
     expire-time: 604800 # 7일
 management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      show-details: always
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
 
 

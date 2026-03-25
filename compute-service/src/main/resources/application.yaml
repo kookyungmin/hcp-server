@@ -63,6 +63,11 @@ outbox:
 websocket:
   orchestrator-worker:
     url: ${SPRING_WK_SERVICE_WS_URL}/ws/internal/computes
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
 
 
 

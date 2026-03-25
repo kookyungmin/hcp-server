@@ -14,7 +14,8 @@ COPY orchestrator-worker ./orchestrator-worker
 COPY compute-service  ./compute-service
 
 RUN chmod +x ./gradlew \
-  && ./gradlew :api-gateway:bootJar --no-daemon --stacktrace --info
+  &&  --mount=type=cache,target=/root/.gradle \
+    ./gradlew :api-gateway:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre
 

@@ -73,7 +73,11 @@ k8s:
   storage-class-name: loopfs
   pod-runtime-class-name: gvisor
   user-name: hcp_dev
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
 
 
 

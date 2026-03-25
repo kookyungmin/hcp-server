@@ -10,6 +10,8 @@
 ![grafana](https://shields.io/badge/grafana-black?logo=grafana&style=for-the-badge%22)
 ![prometheus](https://shields.io/badge/prometheus-black?logo=prometheus&style=for-the-badge%22)
 ![Elasticsearch](https://shields.io/badge/elasticsearch-black?logo=elasticsearch&style=for-the-badge%22)
+![fluentd](https://shields.io/badge/fluentd-black?logo=fluentd&style=for-the-badge%22)
+![kibana](https://shields.io/badge/kibana-black?logo=kibana&style=for-the-badge%22)
 ![Jaeger](https://shields.io/badge/jaeger-black?logo=jaeger&style=for-the-badge%22)
 
 ## 해피 클라우드 플랫폼 
