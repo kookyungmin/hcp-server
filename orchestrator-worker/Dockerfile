@@ -13,9 +13,10 @@ COPY api-gateway ./api-gateway
 COPY orchestrator-worker ./orchestrator-worker
 COPY compute-service  ./compute-service
 
-RUN chmod +x ./gradlew \
-  && --mount=type=cache,target=/root/.gradle \
-    ./gradlew :orchestrator-worker:bootJar --no-daemon
+RUN chmod +x ./gradlew
+
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew :user-service:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre
 
