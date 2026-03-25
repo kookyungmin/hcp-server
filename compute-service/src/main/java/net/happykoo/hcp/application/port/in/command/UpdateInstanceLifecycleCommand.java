@@ -5,7 +5,8 @@ import java.util.UUID;
 public record UpdateInstanceLifecycleCommand(
     UUID instanceId,
     UUID requesterId,
-    String idempotencyKey
+    String idempotencyKey,
+    String requestId
 ) {
 
   public String payload() {

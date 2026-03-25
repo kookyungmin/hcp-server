@@ -32,6 +32,8 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
       String podName
   ) {
     try {
+      log.info("터미널 세션을 엽니다. sessionId={}, namespace={}, podName={}",
+          sessionId, namespace, podName);
       Exec exec = new Exec(apiClient);
       Exec.ExecProcess process = (Exec.ExecProcess) exec.exec(
           namespace,
@@ -59,6 +61,8 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
       startPump(sessionId, session.stderr());
       startWaiter(sessionId, process);
     } catch (Exception e) {
+      log.error("터미널 세션 열기에 실패했습니다. sessionId={}, namespace={}, podName={}",
+          sessionId, namespace, podName, e);
       throw new IllegalStateException("세션을 여는데 실패했습니다.", e);
     }
   }
@@ -71,6 +75,8 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
       session.stdin().write(bytes);
       session.stdin().flush();
     } catch (Exception e) {
+      log.error("터미널 입력 전송에 실패했습니다. sessionId={}, byteLength={}",
+          sessionId, bytes.length, e);
       throw new IllegalStateException("스트림 데이터 전송 중 에러가 발생했습니다.");
     }
   }
@@ -86,6 +92,8 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
     try {
       session.process().resize(cols, rows);
     } catch (Exception e) {
+      log.error("터미널 크기 변경에 실패했습니다. sessionId={}, cols={}, rows={}",
+          sessionId, cols, rows, e);
       throw new IllegalStateException("터미널 크기 변경 중 에러가 발생했습니다.", e);
     }
   }
@@ -93,6 +101,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
   @Override
   public void registerSshKey(String namespace, String podName, String sshKey) {
     try {
+      log.info("SSH 키 등록을 시작합니다. namespace={}, podName={}", namespace, podName);
       var exec = new Exec(apiClient);
 
       var homePath = "/home/" + k8sProperties.getUserName();
@@ -117,7 +126,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
 
       proc.waitFor();
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error("SSH 키 등록에 실패했습니다. namespace={}, podName={}", namespace, podName, e);
       throw new RuntimeException("SSH 등록 중 에러가 발생했습니다.");
     }
 
@@ -125,6 +134,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
 
   @Override
   public void close(String sessionId) {
+    log.info("터미널 세션을 종료합니다. sessionId={}", sessionId);
     var session = terminalSessionRegistry.remove(sessionId);
     if (session != null) {
       session.close();
@@ -137,7 +147,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
       try {
         process.waitFor();
       } catch (InterruptedException ignored) {
-        log.error(ignored.getMessage());
+        log.warn("터미널 세션 종료 대기 중 인터럽트가 발생했습니다. sessionId={}", sessionId, ignored);
       } finally {
         sendTerminalCommandResultPort.close(sessionId);
         close(sessionId);
@@ -156,6 +166,7 @@ public class K8sClientAdapter implements ExecuteTerminalCommandPort {
           sendTerminalCommandResultPort.send(sessionId, copy);
         }
       } catch (Exception e) {
+        log.error("터미널 스트림 전달에 실패했습니다. sessionId={}", sessionId, e);
         sendTerminalCommandResultPort.send(
             sessionId,
             TerminalMessage.error("스트림 데이터 전송 중 에러가 발생했습니다.")

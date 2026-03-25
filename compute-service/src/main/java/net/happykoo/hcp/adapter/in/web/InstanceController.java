@@ -3,6 +3,7 @@ package net.happykoo.hcp.adapter.in.web;
 import java.util.ArrayList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceReadPermission;
 import net.happykoo.hcp.adapter.in.web.auth.ServerInstanceWritePermission;
 import net.happykoo.hcp.adapter.in.web.request.ProvisionInstanceRequest;
@@ -39,10 +40,12 @@ import net.happykoo.hcp.common.annotation.CurrentActor;
 import net.happykoo.hcp.common.annotation.WebAdapter;
 import net.happykoo.hcp.common.web.response.CommonResponseEntity;
 import net.happykoo.hcp.common.web.security.Actor;
+import net.happykoo.hcp.common.web.security.SecurityHeaderNames;
 import net.happykoo.hcp.domain.network.NetworkPolicy;
 import net.happykoo.hcp.domain.network.NetworkPolicyType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,6 +57,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @WebAdapter
 @RequestMapping("/v1/instance")
 @RequiredArgsConstructor
+@Slf4j
 public class InstanceController {
 
   private final ProvisionInstanceUseCase provisionInstanceUseCase;
@@ -71,8 +75,11 @@ public class InstanceController {
   public CommonResponseEntity<Void> provisionInstance(
       @IdempotencyKey String idempotencyKey,
       @RequestBody ProvisionInstanceRequest request,
-      @CurrentActor Actor actor
+      @CurrentActor Actor actor,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("인스턴스 생성 요청을 수신했습니다. ownerId={}, imageCode={}, specCode={}, requestId={}",
+        actor.userId(), request.imageCode(), request.specCode(), requestId);
     provisionInstanceUseCase.provisionInstance(new ProvisionInstanceCommand(
         UUID.fromString(actor.userId()),
         request.name(),
@@ -82,7 +89,8 @@ public class InstanceController {
         request.specCode(),
         request.storageType(),
         request.storageSize(),
-        idempotencyKey
+        idempotencyKey,
+        requestId
     ));
 
     return CommonResponseEntity.ok();
@@ -93,12 +101,16 @@ public class InstanceController {
   public CommonResponseEntity<Void> stopInstance(
       @IdempotencyKey String idempotencyKey,
       @RequestBody UpdateInstanceLifecycleRequest request,
-      @CurrentActor Actor actor
+      @CurrentActor Actor actor,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("인스턴스 중지 요청을 수신했습니다. instanceId={}, actorId={}, requestId={}",
+        request.instanceId(), actor.userId(), requestId);
     updateInstanceLifecycleUseCase.stopInstance(new UpdateInstanceLifecycleCommand(
         UUID.fromString(request.instanceId()),
         UUID.fromString(actor.userId()),
-        idempotencyKey
+        idempotencyKey,
+        requestId
     ));
 
     return CommonResponseEntity.ok();
@@ -109,12 +121,16 @@ public class InstanceController {
   public CommonResponseEntity<Void> restartInstance(
       @IdempotencyKey String idempotencyKey,
       @RequestBody UpdateInstanceLifecycleRequest request,
-      @CurrentActor Actor actor
+      @CurrentActor Actor actor,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("인스턴스 재시작 요청을 수신했습니다. instanceId={}, actorId={}, requestId={}",
+        request.instanceId(), actor.userId(), requestId);
     updateInstanceLifecycleUseCase.restartInstance(new UpdateInstanceLifecycleCommand(
         UUID.fromString(request.instanceId()),
         UUID.fromString(actor.userId()),
-        idempotencyKey
+        idempotencyKey,
+        requestId
     ));
 
     return CommonResponseEntity.ok();
@@ -125,12 +141,16 @@ public class InstanceController {
   public CommonResponseEntity<Void> terminateInstance(
       @IdempotencyKey String idempotencyKey,
       @RequestBody UpdateInstanceLifecycleRequest request,
-      @CurrentActor Actor actor
+      @CurrentActor Actor actor,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("인스턴스 삭제 요청을 수신했습니다. instanceId={}, actorId={}, requestId={}",
+        request.instanceId(), actor.userId(), requestId);
     updateInstanceLifecycleUseCase.terminateInstance(new UpdateInstanceLifecycleCommand(
         UUID.fromString(request.instanceId()),
         UUID.fromString(actor.userId()),
-        idempotencyKey
+        idempotencyKey,
+        requestId
     ));
 
     return CommonResponseEntity.ok();
@@ -157,8 +177,11 @@ public class InstanceController {
   public CommonResponseEntity<Void> updateInstanceSpec(
       @CurrentActor Actor actor,
       @RequestBody UpdateInstanceSpecRequest request,
-      @IdempotencyKey String idempotencyKey
+      @IdempotencyKey String idempotencyKey,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("인스턴스 스펙 변경 요청을 수신했습니다. instanceId={}, specCode={}, requestId={}",
+        request.instanceId(), request.specCode(), requestId);
     updateInstanceSpecUseCase.updateInstanceSpec(
         new UpdateInstanceSpecCommand(
             UUID.fromString(actor.userId()),
@@ -166,7 +189,8 @@ public class InstanceController {
             idempotencyKey,
             request.specCode(),
             request.storageType(),
-            request.storageSize()
+            request.storageSize(),
+            requestId
         )
     );
     return CommonResponseEntity.ok();
@@ -177,16 +201,20 @@ public class InstanceController {
   public CommonResponseEntity<Void> updateInstanceSshKey(
       @CurrentActor Actor actor,
       @RequestBody RegisterSshKeyRequest request,
-      @IdempotencyKey String idempotencyKey
+      @IdempotencyKey String idempotencyKey,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
 
   ) {
+    log.info("SSH 키 등록 요청을 수신했습니다. instanceId={}, keyName={}, requestId={}",
+        request.instanceId(), request.keyName(), requestId);
     saveInstanceSshKeyUseCase.saveInstanceSshKey(
         new RegisterInstanceSshKeyCommand(
             UUID.fromString(request.instanceId()),
             UUID.fromString(actor.userId()),
             idempotencyKey,
             request.keyName(),
-            request.sshKey()
+            request.sshKey(),
+            requestId
         ));
     return CommonResponseEntity.ok();
   }
@@ -196,8 +224,12 @@ public class InstanceController {
   public CommonResponseEntity<Void> updateInstanceNetworkPolicy(
       @CurrentActor Actor actor,
       @RequestBody UpdateNetworkPolicyRequest request,
-      @IdempotencyKey String idempotencyKey
+      @IdempotencyKey String idempotencyKey,
+      @RequestHeader(SecurityHeaderNames.X_REQUEST_ID) String requestId
   ) {
+    log.info("네트워크 정책 변경 요청을 수신했습니다. instanceId={}, ingressCount={}, egressCount={}, requestId={}",
+        request.instanceId(), request.ingressPolicies().size(), request.egressPolicies().size(),
+        requestId);
     var instanceId = UUID.fromString(request.instanceId());
     var networkPolicies = new ArrayList<NetworkPolicy>();
 
@@ -225,7 +257,8 @@ public class InstanceController {
         instanceId,
         UUID.fromString(actor.userId()),
         idempotencyKey,
-        networkPolicies
+        networkPolicies,
+        requestId
     ));
     return CommonResponseEntity.ok();
   }

@@ -111,7 +111,8 @@ class InstanceServiceTest {
         "spec-small",
         "SSD",
         50,
-        "idem-1"
+        "idem-1",
+        "req-1"
     ));
 
     ArgumentCaptor<ServerInstance> instanceCaptor = ArgumentCaptor.forClass(ServerInstance.class);
@@ -132,6 +133,7 @@ class InstanceServiceTest {
     OutboxEvent outboxEvent = outboxCaptor.getValue();
     assertEquals(INSTANCE_PROVISIONING_EVENT, outboxEvent.getEventType());
     assertNotNull(outboxEvent.getPayload());
+    assertEquals("req-1", outboxEvent.getRequestId());
 
     IdempotencyRequest idempotencyRequest = idempotencyCaptor.getValue();
     assertEquals(ownerId, idempotencyRequest.getOwnerId());
@@ -155,7 +157,7 @@ class InstanceServiceTest {
         )));
 
     instanceService.provisionInstance(new ProvisionInstanceCommand(
-        ownerId, "web-1", null, "img", "vpc", "spec", "SSD", 50, "idem-1"
+        ownerId, "web-1", null, "img", "vpc", "spec", "SSD", 50, "idem-1", "req-1"
     ));
 
     verify(saveInstanceInfoPort, never()).saveInstanceInfo(any());
@@ -175,7 +177,7 @@ class InstanceServiceTest {
     assertThrows(
         IllegalStateException.class,
         () -> instanceService.updateInstanceSpec(new UpdateInstanceSpecCommand(
-            ownerId, instanceId, "idem-1", "spec-large", "SSD", 50))
+            ownerId, instanceId, "idem-1", "spec-large", "SSD", 50, "req-1"))
     );
 
     verify(saveInstanceInfoPort, never()).saveInstanceInfo(any());
@@ -193,7 +195,8 @@ class InstanceServiceTest {
     when(getIdempotencyRequestPort.findRequestByKey(ownerId, "hash")).thenReturn(Optional.empty());
     when(getInstanceInfoPort.findInstanceById(instanceId)).thenReturn(instance);
 
-    instanceService.stopInstance(new UpdateInstanceLifecycleCommand(instanceId, ownerId, "idem-1"));
+    instanceService.stopInstance(new UpdateInstanceLifecycleCommand(
+        instanceId, ownerId, "idem-1", "req-1"));
 
     ArgumentCaptor<UpdateInstanceStatusData> statusCaptor =
         ArgumentCaptor.forClass(UpdateInstanceStatusData.class);
@@ -222,7 +225,7 @@ class InstanceServiceTest {
     assertThrows(
         IllegalStateException.class,
         () -> instanceService.terminateInstance(new UpdateInstanceLifecycleCommand(
-            instanceId, ownerId, "idem-1"))
+            instanceId, ownerId, "idem-1", "req-1"))
     );
   }
 
@@ -237,7 +240,7 @@ class InstanceServiceTest {
     when(getInstanceInfoPort.findInstanceById(instanceId)).thenReturn(instance(ownerId, instanceId));
 
     instanceService.saveInstanceSshKey(new RegisterInstanceSshKeyCommand(
-        instanceId, ownerId, "idem-1", "main-key", "ssh-rsa AAAA"
+        instanceId, ownerId, "idem-1", "main-key", "ssh-rsa AAAA", "req-1"
     ));
 
     ArgumentCaptor<InstanceSshKey> sshKeyCaptor = ArgumentCaptor.forClass(InstanceSshKey.class);
@@ -266,7 +269,7 @@ class InstanceServiceTest {
     when(getInstanceInfoPort.findInstanceById(instanceId)).thenReturn(instance(ownerId, instanceId));
 
     instanceService.updateNetworkPolicy(new UpdateNetworkPolicyCommand(
-        instanceId, ownerId, "idem-1", policies
+        instanceId, ownerId, "idem-1", policies, "req-1"
     ));
 
     ArgumentCaptor<OutboxEvent> outboxCaptor = ArgumentCaptor.forClass(OutboxEvent.class);
@@ -332,7 +335,7 @@ class InstanceServiceTest {
     assertThrows(
         IdempotencyConflictException.class,
         () -> instanceService.provisionInstance(new ProvisionInstanceCommand(
-            ownerId, "web-1", null, "img", "vpc", "spec", "SSD", 50, "idem-1"))
+            ownerId, "web-1", null, "img", "vpc", "spec", "SSD", 50, "idem-1", "req-1"))
     );
   }
 

@@ -8,7 +8,8 @@ public record UpdateInstanceSpecCommand(
     String idempotencyKey,
     String specCode,
     String storageType,
-    int storageSize
+    int storageSize,
+    String requestId
 ) {
 
   public String payload() {

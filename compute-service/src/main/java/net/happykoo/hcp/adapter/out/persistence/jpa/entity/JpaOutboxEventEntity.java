@@ -38,6 +38,9 @@ public class JpaOutboxEventEntity extends JpaTimeBaseEntity {
   @Column(name = "payload")
   private String payload;
 
+  @Column(name = "request_id")
+  private String requestId;
+
   @Column(name = "retry_count")
   private int retryCount;
 
@@ -50,6 +53,7 @@ public class JpaOutboxEventEntity extends JpaTimeBaseEntity {
         outboxEvent.getEventType(),
         outboxEvent.getStatus(),
         outboxEvent.getPayload(),
+        outboxEvent.getRequestId(),
         outboxEvent.getRetryCount(),
         null
     );
@@ -60,6 +64,7 @@ public class JpaOutboxEventEntity extends JpaTimeBaseEntity {
         eventId,
         eventType,
         payload,
+        requestId,
         status,
         retryCount
     );

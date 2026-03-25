@@ -28,6 +28,9 @@ dependencies {
   //Prometheus
   implementation("io.micrometer:micrometer-registry-prometheus")
 
+  //logstash
+  implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
   //Lombok
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")

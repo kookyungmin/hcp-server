@@ -15,6 +15,7 @@ class OutboxEventTest {
         UUID.randomUUID(),
         OutboxEventType.INSTANCE_PROVISIONING_EVENT,
         "{}",
+        "req-1",
         OutboxStatus.PENDING,
         0
     );

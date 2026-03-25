@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import net.happykoo.hcp.common.web.logging.RequestIdMdcSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,22 +29,27 @@ public class CommonAuthenticationFilter extends OncePerRequestFilter {
       @NonNull HttpServletResponse response,
       @NonNull FilterChain filterChain
   ) throws ServletException, IOException {
+    var previousRequestId = RequestIdMdcSupport.bindHttpRequest(request);
 
-    if (SecurityContextHolder.getContext().getAuthentication() != null) {
+    try {
+      if (SecurityContextHolder.getContext().getAuthentication() != null) {
+        filterChain.doFilter(request, response);
+        return;
+      }
+
+      var userId = request.getHeader(X_USER_ID);
+
+      if (StringUtils.isNotBlank(userId)) {
+        var authorities = parseRoles(request.getHeader(X_ROLES));
+        var authenticationToken = new UsernamePasswordAuthenticationToken(userId, null, authorities);
+        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+      }
+
       filterChain.doFilter(request, response);
-      return;
+    } finally {
+      RequestIdMdcSupport.restore(previousRequestId);
     }
-
-    var userId = request.getHeader(X_USER_ID);
-
-    if (StringUtils.isNotBlank(userId)) {
-      var authorities = parseRoles(request.getHeader(X_ROLES));
-      var authenticationToken = new UsernamePasswordAuthenticationToken(userId, null, authorities);
-      authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-      SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-    }
-
-    filterChain.doFilter(request, response);
   }
 
   private List<SimpleGrantedAuthority> parseRoles(String rolesHeader) {

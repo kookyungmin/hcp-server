@@ -1,5 +1,6 @@
 package net.happykoo.hcp.web.auth.filter.jwt;
 
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.common.utils.jwt.JwtProperties;
 import net.happykoo.hcp.common.utils.jwt.JwtProvider;
@@ -23,6 +24,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
   private static final String BEARER = "Bearer ";
   private static final String X_USER_ID = "X-User-Id";
   private static final String X_ROLES = "X-Roles";
+  private static final String X_REQUEST_ID = "X-Request-Id";
   private final JwtProvider jwtProvider;
 
 
@@ -37,11 +39,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
       ServerWebExchange exchange,
       GatewayFilterChain chain
   ) {
+    var requestId = UUID.randomUUID().toString();
     var reqBuilder = exchange.getRequest().mutate()
         // 클라이언트가 임의로 넣은 값 무조건 제거(위조 방지)
         .headers(h -> {
           h.remove(X_USER_ID);
           h.remove(X_ROLES);
+          h.remove(X_REQUEST_ID);
+          h.add(X_REQUEST_ID, requestId);
         });
 
     var accessToken = getAccessToken(exchange.getRequest());
@@ -60,6 +65,8 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         reqBuilder.header(X_ROLES, scopes);
       }
     } catch (Exception e) {
+      log.warn("JWT 인증에 실패했습니다. path={}, requestId={}", exchange.getRequest().getURI().getPath(),
+          requestId, e);
       exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
       return exchange.getResponse().setComplete();
     }

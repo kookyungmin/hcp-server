@@ -37,6 +37,9 @@ dependencies {
   //Prometheus
   implementation("io.micrometer:micrometer-registry-prometheus")
 
+  //logstash
+  implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
   //MySql
   runtimeOnly("com.mysql:mysql-connector-j")
 

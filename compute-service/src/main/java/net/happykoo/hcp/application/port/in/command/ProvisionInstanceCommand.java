@@ -16,7 +16,8 @@ public record ProvisionInstanceCommand(
     String specCode,
     String storageType,
     int storageSize,
-    String idempotencyKey
+    String idempotencyKey,
+    String requestId
 ) {
 
   public Set<String> tagSet() {

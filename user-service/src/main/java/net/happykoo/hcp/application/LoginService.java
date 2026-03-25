@@ -4,6 +4,7 @@ import static net.happykoo.hcp.adapter.out.persistence.redis.CacheNames.USER_PRO
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.application.port.in.LoginUseCase;
 import net.happykoo.hcp.application.port.in.command.LoginCommand;
 import net.happykoo.hcp.application.port.in.result.GetLoginUserInfo;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 @RequiredArgsConstructor
+@Slf4j
 public class LoginService implements LoginUseCase {
 
   private final GetUserAccountPort getUserAccountPort;
@@ -40,6 +42,7 @@ public class LoginService implements LoginUseCase {
 
     //비밀번호 비교
     if (!encryptPasswordPort.matches(command.password(), userAccount.getPasswordHash())) {
+      log.warn("로그인에 실패했습니다. 비밀번호가 일치하지 않습니다. email={}", command.email());
       throw new IllegalStateException("비밀번호가 올바르지 않습니다.");
     }
 
@@ -48,6 +51,7 @@ public class LoginService implements LoginUseCase {
         .orElseThrow(() -> new ResourceNotFoundException("사용자가 존재하지 않습니다."));
 
     if (!user.isActive()) {
+      log.warn("로그인에 실패했습니다. 비활성 사용자입니다. userId={}", user.getId());
       throw new IllegalStateException("활성화된 사용자가 아닙니다.");
     }
 
@@ -57,12 +61,14 @@ public class LoginService implements LoginUseCase {
 
     //Access Token 생성
     var accessToken = generatorTokenPort.createAccessToken(user);
+    log.info("로그인에 성공했습니다. userId={}", user.getId());
 
     return new LoginResult(accessToken, refreshToken);
   }
 
   @Override
   public void logout(String refreshToken) {
+    log.info("로그아웃을 처리합니다.");
     saveTokenPort.removeRefreshToken(refreshToken);
   }
 
@@ -70,12 +76,14 @@ public class LoginService implements LoginUseCase {
   public RefreshAccessTokenResult refreshAccessToken(String refreshToken) {
     var userId = getTokenPort.getRefreshTokenPayload(refreshToken).userId();
     if (userId == null) {
+      log.warn("액세스 토큰 재발급에 실패했습니다. 리프레시 토큰이 유효하지 않습니다.");
       throw new IllegalStateException("로그인이 필요합니다.");
     }
     var user = getUserPort.getUserById(UUID.fromString(userId))
         .orElseThrow(() -> new ResourceNotFoundException("사용자가 존재하지 않습니다."));
 
     var accessToken = generatorTokenPort.createAccessToken(user);
+    log.info("액세스 토큰 재발급에 성공했습니다. userId={}", userId);
     return new RefreshAccessTokenResult(accessToken);
   }
 

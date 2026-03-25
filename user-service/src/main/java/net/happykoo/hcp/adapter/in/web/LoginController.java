@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.adapter.in.web.auth.UserReadPermission;
 import net.happykoo.hcp.adapter.in.web.cookie.CookieManager;
 import net.happykoo.hcp.adapter.in.web.request.LoginRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @WebAdapter
 @RequestMapping("/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class LoginController {
 
   private final LoginUseCase loginUseCase;
@@ -36,6 +38,7 @@ public class LoginController {
   public CommonResponseEntity<GetCurrentUserResponse> getCurrentUser(
       @CurrentActor Actor actor
   ) {
+    log.info("현재 사용자 정보 조회 요청을 수신했습니다. userId={}", actor.userId());
     //TODO: 후에 getUserUseCase 로 옮겨서 구현
     var loginUserResult = loginUseCase.getLoginUserInfo(UUID.fromString(actor.userId()));
     return CommonResponseEntity.ok(new GetCurrentUserResponse(
@@ -52,6 +55,7 @@ public class LoginController {
       @RequestBody @Valid LoginRequest request,
       HttpServletResponse response
   ) {
+    log.info("로그인 요청을 수신했습니다. email={}", request.email());
     var loginResult = loginUseCase.login(new LoginCommand(request.email(), request.password()));
 
     response.setHeader(HttpHeaders.SET_COOKIE,
@@ -66,6 +70,7 @@ public class LoginController {
       HttpServletResponse response
   ) {
     var refreshToken = cookieManager.getRefreshToken(request.getCookies());
+    log.info("로그아웃 요청을 수신했습니다.");
     loginUseCase.logout(refreshToken);
 
     response.setHeader(HttpHeaders.SET_COOKIE,
@@ -79,6 +84,7 @@ public class LoginController {
       HttpServletRequest request
   ) {
     var refreshToken = cookieManager.getRefreshToken(request.getCookies());
+    log.info("액세스 토큰 재발급 요청을 수신했습니다.");
     var refreshResult = loginUseCase.refreshAccessToken(refreshToken);
 
     return CommonResponseEntity.ok(new RefreshAccessTokenResponse(refreshResult.accessToken()));

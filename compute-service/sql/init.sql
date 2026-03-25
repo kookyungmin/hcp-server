@@ -101,6 +101,7 @@ create table hcp_compute.h_outbox_event(
     event_id binary(16) not null,
     event_type varchar(64) not null,
     payload varchar(1024) not null,
+    request_id varchar(64),
     status varchar(16) not null,
     retry_count smallint not null default 0,
     claim_token binary(16),
@@ -122,4 +123,3 @@ create table hcp_compute.h_network_policy(
     created_at timestamp not null default now(),
     updated_at timestamp not null default now()
 );
-

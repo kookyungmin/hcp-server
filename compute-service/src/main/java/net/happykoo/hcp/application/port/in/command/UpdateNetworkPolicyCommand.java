@@ -9,7 +9,8 @@ public record UpdateNetworkPolicyCommand(
     UUID instanceId,
     UUID requesterId,
     String idempotencyKey,
-    List<NetworkPolicy> networkPolicies
+    List<NetworkPolicy> networkPolicies,
+    String requestId
 ) {
 
   public String payload() {

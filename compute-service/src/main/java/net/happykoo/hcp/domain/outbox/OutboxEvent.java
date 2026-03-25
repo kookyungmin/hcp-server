@@ -11,6 +11,7 @@ public class OutboxEvent {
   private UUID eventId;
   private OutboxEventType eventType;
   private String payload;
+  private String requestId;
   private OutboxStatus status;
   private int retryCount;
 

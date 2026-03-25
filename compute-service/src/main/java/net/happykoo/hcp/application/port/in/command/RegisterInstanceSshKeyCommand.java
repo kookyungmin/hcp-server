@@ -7,7 +7,8 @@ public record RegisterInstanceSshKeyCommand(
     UUID requesterId,
     String idempotencyKey,
     String keyName,
-    String publicKey
+    String publicKey,
+    String requestId
 ) {
 
   public String payload() {

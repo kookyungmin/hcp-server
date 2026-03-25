@@ -5,6 +5,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.happykoo.hcp.adapter.out.websocket.payload.WorkerTerminalMessage;
 import net.happykoo.hcp.adapter.out.websocket.payload.WorkerTerminalMessageType;
 import net.happykoo.hcp.application.port.out.ExecuteTerminalCommandPort;
@@ -22,6 +23,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 @Component
 @RequiredArgsConstructor
 @EnableConfigurationProperties(OrchestratorWorkerWebSocketProperties.class)
+@Slf4j
 public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalCommandPort {
 
   private final SendTerminalCommandResultPort sendTerminalCommandResultPort;
@@ -32,6 +34,8 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
   @Override
   public void openInstanceTerminal(TerminalSession terminalSession) {
     try {
+      log.info("오케스트레이터 워커 웹소켓 연결을 시작합니다. sessionId={}, instanceId={}",
+          terminalSession.getSessionId(), terminalSession.getInstanceId());
       var headers = new WebSocketHttpHeaders();
       headers.add("X-Internal-Caller", "compute-service");
       headers.add("X-User-Id", terminalSession.getUserId().toString());
@@ -55,6 +59,8 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
       workerSessions.put(terminalSession.getSessionId(), workerSession);
       workerSession.sendMessage(new TextMessage(message));
     } catch (Exception e) {
+      log.error("오케스트레이터 워커 웹소켓 연결에 실패했습니다. sessionId={}, instanceId={}",
+          terminalSession.getSessionId(), terminalSession.getInstanceId(), e);
       throw new IllegalStateException("웹소켓 연결을 실패했습니다.", e);
     }
   }
@@ -65,6 +71,7 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
       WebSocketSession workerSession = workerSessions.get(sessionId);
       workerSession.sendMessage(new BinaryMessage(bytes));
     } catch (Exception e) {
+      log.error("오케스트레이터 워커로 바이너리 메시지 전송에 실패했습니다. sessionId={}", sessionId, e);
       throw new IllegalStateException("바이너리 소켓 메시지 전송에 실패했습니다.", e);
     }
   }
@@ -76,6 +83,7 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
 
   @Override
   public void close(String sessionId) {
+    log.info("오케스트레이터 워커 웹소켓 연결을 종료합니다. sessionId={}", sessionId);
     sendTextMessage(sessionId, WorkerTerminalMessage.close(sessionId));
   }
 
@@ -93,7 +101,9 @@ public class OrchestratorWorkerWebSocketAdapter implements ExecuteTerminalComman
           workerSession.close();
         }
       }
-    } catch (Exception ignored) {
+    } catch (Exception e) {
+      log.error("오케스트레이터 워커로 텍스트 메시지 전송에 실패했습니다. sessionId={}, type={}",
+          sessionId, terminalMessage.type(), e);
     }
   }
 
