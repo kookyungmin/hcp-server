@@ -13,6 +13,7 @@ minikube start \
 minikube addons enable gvisor
 minikube addons enable metallb
 minikube addons enable ingress
+minikube addons enable metrics-server
 minikube tunnel
 ```
 
