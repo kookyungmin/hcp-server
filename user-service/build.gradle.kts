@@ -40,6 +40,10 @@ dependencies {
   //logstash
   implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
+  //traces
+  implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+
+
   //MySql
   runtimeOnly("com.mysql:mysql-connector-j")
 

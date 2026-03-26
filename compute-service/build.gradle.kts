@@ -38,6 +38,9 @@ dependencies {
   //logstash
   implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
+  //traces
+  implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+
   //Swagger
   implementation("org.springdoc:springdoc-openapi-starter-common:2.2.0")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0")
