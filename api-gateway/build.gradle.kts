@@ -31,8 +31,8 @@ dependencies {
   //logstash
   implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
-  //traces
-  implementation("org.springframework.boot:spring-boot-starter-opentelemetry")
+  implementation("io.micrometer:micrometer-tracing-bridge-otel")
+  implementation("io.opentelemetry:opentelemetry-exporter-otlp")
 
   //Lombok
   compileOnly("org.projectlombok:lombok")

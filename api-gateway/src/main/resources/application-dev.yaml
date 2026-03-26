@@ -1,7 +1,7 @@
-tracing:
-  sampling:
-    probability: 1.0
-opentelemetry:
+management:
   tracing:
-    export:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
       endpoint: http://jaeger.observability.svc.cluster.local:4318/v1/traces
